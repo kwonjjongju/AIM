@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 기본 스타일 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #fef3c7 0%, #fef9c3 50%, #fef3c7 100%);
+  min-height: 100vh;
+}
+
+/* 스크롤바 스타일 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* 커스텀 유틸리티 */
+@layer components {
+  .btn-primary {
+    @apply bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98];
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-card p-4 transition-all duration-200 hover:shadow-card-hover;
+  }
+  
+  .input {
+    @apply w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all duration-200;
+  }
+
+  /* 포스트잇 스타일 카드 */
+  .sticky-note {
+    @apply relative bg-amber-50 rounded-lg shadow-sticky p-4;
+    transform: rotate(-1deg);
+    transition: all 0.2s ease;
+  }
+  
+  .sticky-note:hover {
+    transform: rotate(0deg) translateY(-4px);
+    @apply shadow-card-hover;
+  }
+  
+  .sticky-note::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 20px;
+    width: 60px;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 0 0 4px 4px;
+  }
+}
+
+/* 상태 배지 색상 */
+.status-idea { background-color: #FCD34D; }
+.status-reviewing { background-color: #60A5FA; }
+.status-in-progress { background-color: #34D399; }
+.status-on-hold { background-color: #9CA3AF; }
+.status-done { background-color: #2DD4BF; }
+
+/* 부드러운 그라데이션 배경 */
+.gradient-bg {
+  background: 
+    radial-gradient(ellipse at 20% 30%, rgba(251, 191, 36, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(167, 139, 250, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(96, 165, 250, 0.08) 0%, transparent 60%),
+    linear-gradient(135deg, #fef3c7 0%, #fef9c3 50%, #fef3c7 100%);
+}

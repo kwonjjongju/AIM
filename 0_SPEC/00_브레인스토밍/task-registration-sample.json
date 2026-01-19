@@ -1,0 +1,62 @@
+{
+  "basicInfo": {
+    "departmentName": "글로벌상생협력팀",
+    "managerName": "맹성열",
+    "managerEmail": "maeng@kyungshin.co.kr",
+    "taskName": "체제평가서 템플릿 개발",
+    "taskDescription": "현상 및 문제점 작성 (음성인식), 사진 업로드 기능",
+    "taskCategory": "정기",
+    "taskFrequency": "체제평가(년)"
+  },
+  "currentStatus": {
+    "currentMethod": "수기",
+    "currentMethodDetail": "ppt 양식",
+    "currentDuration": "4시간/1개사업장 기준",
+    "participantCount": 6,
+    "mainProblem": "업무시간과다 (현장에서 평가서 작성이 어렵고 문제점 및 사진을 찍고 사무실에서 평가서 작성) → 업무시간 개선",
+    "improvementReason": "업무시간 개선"
+  },
+  "developmentGoal": {
+    "developmentPurpose": "업무시간 개선",
+    "expectedEffectQuantitative": "작성시간 단축 (4h → 0.5h)",
+    "expectedEffectQualitative": "수작업 시간 Loss 감소, 표준화",
+    "automationLevel": "부분 자동화"
+  },
+  "dataSpec": {
+    "inputDataSource": "파일",
+    "inputDataFormat": "ppt",
+    "inputDataFrequency": "45개 사업장 평가",
+    "outputDataFormat": "ppt",
+    "outputDataUsage": "사장님 보고"
+  },
+  "techSpec": {
+    "preferredImplementation": "SW 개발",
+    "requiredTechnology": [],
+    "guiRequired": true,
+    "webBased": "비웹",
+    "frontendChoice": "Python",
+    "backendChoice": "Python",
+    "coreEngine": "음성인식/사진업로드"
+  },
+  "infrastructure": {
+    "deploymentEnvironment": "개인PC",
+    "operationMethod": null,
+    "serverLocation": null,
+    "targetDevice": ["PC", "모바일"],
+    "securityLevel": "상"
+  },
+  "userScope": {
+    "primaryUserRole": "체제평가 담당자",
+    "expectedUserCount": 6,
+    "usageScope": "팀내",
+    "crossDepartmentPossibility": true,
+    "companyWidePossibility": true
+  },
+  "priorityConstraints": {
+    "importance": "중",
+    "targetCompletionDate": "2026-04-30",
+    "budgetConsideration": false,
+    "externalSolutionAllowed": false,
+    "otherConstraints": null
+  }
+}
