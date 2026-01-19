@@ -13,7 +13,6 @@ body {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #fef3c7 0%, #fef9c3 50%, #fef3c7 100%);
   min-height: 100vh;
 }
 
@@ -28,22 +27,22 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: #94a3b8;
 }
 
 /* 커스텀 유틸리티 */
 @layer components {
   .btn-primary {
-    @apply bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98];
+    @apply bg-teal-500 hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98];
   }
   
   .btn-secondary {
-    @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all duration-200;
+    @apply bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-all duration-200;
   }
   
   .card {
@@ -51,45 +50,96 @@ body {
   }
   
   .input {
-    @apply w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all duration-200;
+    @apply w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all duration-200;
   }
 
-  /* 포스트잇 스타일 카드 */
-  .sticky-note {
-    @apply relative bg-amber-50 rounded-lg shadow-sticky p-4;
-    transform: rotate(-1deg);
-    transition: all 0.2s ease;
+  /* 새로운 카드 스타일 */
+  .improvement-card {
+    @apply bg-white rounded-lg border border-slate-200 p-4 shadow-sm;
+    @apply hover:shadow-md hover:border-slate-300 transition-all duration-200;
   }
-  
-  .sticky-note:hover {
-    transform: rotate(0deg) translateY(-4px);
-    @apply shadow-card-hover;
-  }
-  
-  .sticky-note::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 20px;
-    width: 60px;
-    height: 20px;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 0 0 4px 4px;
+
+  /* 상태 배지 */
+  .status-badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium;
   }
 }
 
 /* 상태 배지 색상 */
-.status-idea { background-color: #FCD34D; }
-.status-reviewing { background-color: #60A5FA; }
-.status-in-progress { background-color: #34D399; }
-.status-on-hold { background-color: #9CA3AF; }
-.status-done { background-color: #2DD4BF; }
+.status-idea { 
+  background-color: #FEF3C7; 
+  color: #92400E;
+}
+.status-reviewing { 
+  background-color: #DBEAFE; 
+  color: #1E40AF;
+}
+.status-in-progress { 
+  background-color: #D1FAE5; 
+  color: #065F46;
+}
+.status-on-hold { 
+  background-color: #F3F4F6; 
+  color: #4B5563;
+}
+.status-done { 
+  background-color: #CCFBF1; 
+  color: #0F766E;
+}
 
-/* 부드러운 그라데이션 배경 */
+/* 사이드바 스타일 */
+.sidebar-icon-bar {
+  @apply w-16 bg-slate-700 flex flex-col items-center py-4;
+}
+
+.sidebar-icon-btn {
+  @apply w-12 h-12 rounded-lg flex flex-col items-center justify-center gap-0.5;
+  @apply transition-all duration-200 text-slate-400;
+  @apply hover:bg-slate-600 hover:text-white;
+}
+
+.sidebar-icon-btn.active {
+  @apply bg-teal-500 text-white;
+}
+
+.sidebar-submenu {
+  @apply bg-slate-50 border-r border-slate-200;
+}
+
+.sidebar-submenu-item {
+  @apply flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg;
+  @apply text-slate-600 transition-all duration-150;
+  @apply hover:bg-slate-200;
+}
+
+.sidebar-submenu-item.active {
+  @apply bg-teal-500 text-white font-medium;
+}
+
+/* 그리드 카드 레이아웃 */
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.grid-card {
+  @apply aspect-square rounded-lg flex flex-col items-center justify-center gap-2;
+  @apply bg-teal-400 text-white cursor-pointer;
+  @apply hover:bg-teal-500 transition-all duration-200;
+}
+
+.grid-card-empty {
+  @apply aspect-square rounded-lg border-2 border-dashed border-slate-300;
+  @apply flex items-center justify-center text-slate-400;
+  @apply hover:border-slate-400 hover:text-slate-500 transition-all;
+}
+
+/* 로그인 페이지 그라데이션 배경 */
 .gradient-bg {
   background: 
-    radial-gradient(ellipse at 20% 30%, rgba(251, 191, 36, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 70%, rgba(167, 139, 250, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 30%, rgba(20, 184, 166, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
     radial-gradient(ellipse at 50% 50%, rgba(96, 165, 250, 0.08) 0%, transparent 60%),
-    linear-gradient(135deg, #fef3c7 0%, #fef9c3 50%, #fef3c7 100%);
+    linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
 }

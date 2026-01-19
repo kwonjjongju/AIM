@@ -1,13 +1,79 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FiHome, FiGrid, FiLogOut, FiUser } from 'react-icons/fi';
+import { useState } from 'react';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FiHome, 
+  FiGrid, 
+  FiLogOut, 
+  FiUser,
+  FiSettings,
+  FiLayers,
+  FiCheckSquare,
+  FiClock,
+  FiPauseCircle,
+  FiEye,
+  FiUsers,
+  FiFolder,
+  FiZap,
+  FiSearch
+} from 'react-icons/fi';
 import { useAuthStore } from '../store/authStore';
 import { authApi } from '../api/auth';
 import toast from 'react-hot-toast';
 
+// 메뉴 구조 정의
+interface SubMenuItem {
+  id: string;
+  label: string;
+  path: string;
+  icon?: React.ReactNode;
+}
+
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  subItems?: SubMenuItem[];
+  path?: string;
+}
+
+const menuItems: MenuItem[] = [
+  {
+    id: 'dashboard',
+    label: '대시보드',
+    icon: <FiHome size={22} />,
+    path: '/dashboard',
+  },
+  {
+    id: 'board',
+    label: '개선보드',
+    icon: <FiGrid size={22} />,
+    subItems: [
+      { id: 'board-all', label: '전체 보기', path: '/board', icon: <FiLayers size={16} /> },
+      { id: 'board-idea', label: '💡 아이디어', path: '/board?status=idea', icon: <FiZap size={16} /> },
+      { id: 'board-reviewing', label: '👀 검토중', path: '/board?status=reviewing', icon: <FiSearch size={16} /> },
+      { id: 'board-progress', label: '🛠️ 진행중', path: '/board?status=in_progress', icon: <FiClock size={16} /> },
+      { id: 'board-hold', label: '⏸️ 보류', path: '/board?status=on_hold', icon: <FiPauseCircle size={16} /> },
+      { id: 'board-done', label: '✅ 완료', path: '/board?status=done', icon: <FiCheckSquare size={16} /> },
+    ],
+  },
+  {
+    id: 'management',
+    label: '관리',
+    icon: <FiSettings size={22} />,
+    subItems: [
+      { id: 'dept', label: '부서 관리', path: '/management/departments', icon: <FiFolder size={16} /> },
+      { id: 'users', label: '사용자 관리', path: '/management/users', icon: <FiUsers size={16} /> },
+    ],
+  },
+];
+
 export default function Layout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [activeMenu, setActiveMenu] = useState<string | null>('board');
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['board']);
 
   const handleLogout = async () => {
     try {
@@ -21,90 +87,175 @@ export default function Layout() {
     }
   };
 
+  const handleMenuClick = (menu: MenuItem) => {
+    if (menu.path) {
+      navigate(menu.path);
+      setActiveMenu(menu.id);
+    } else if (menu.subItems) {
+      setActiveMenu(menu.id);
+      if (expandedMenus.includes(menu.id)) {
+        setExpandedMenus(expandedMenus.filter(id => id !== menu.id));
+      } else {
+        setExpandedMenus([...expandedMenus, menu.id]);
+      }
+    }
+  };
+
+  const toggleSubmenu = (menuId: string) => {
+    if (expandedMenus.includes(menuId)) {
+      setExpandedMenus(expandedMenus.filter(id => id !== menuId));
+    } else {
+      setExpandedMenus([...expandedMenus, menuId]);
+    }
+  };
+
+  const isMenuActive = (menu: MenuItem) => {
+    if (menu.path) {
+      return location.pathname === menu.path;
+    }
+    if (menu.subItems) {
+      return menu.subItems.some(sub => location.pathname + location.search === sub.path || location.pathname === sub.path.split('?')[0]);
+    }
+    return false;
+  };
+
+  const isSubItemActive = (subItem: SubMenuItem) => {
+    const currentPath = location.pathname + location.search;
+    if (subItem.path.includes('?')) {
+      return currentPath === subItem.path;
+    }
+    return location.pathname === subItem.path && !location.search;
+  };
+
   return (
-    <div className="min-h-screen gradient-bg">
-      {/* 헤더 */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-amber-200/50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* 로고 */}
-            <div className="flex items-center gap-3">
-              <motion.div
-                initial={{ rotate: -10 }}
-                animate={{ rotate: [0, -5, 5, 0] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                className="text-3xl"
-              >
-                📋
-              </motion.div>
-              <div>
-                <h1 className="font-display font-bold text-lg text-gray-800">
-                  업무 개선 보드
-                </h1>
-                <p className="text-xs text-gray-500 -mt-0.5">Fix-it Board</p>
-              </div>
-            </div>
-
-            {/* 네비게이션 */}
-            <nav className="flex items-center gap-1">
-              <NavLink
-                to="/dashboard"
-                className={({ isActive }) =>
-                  `flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? 'bg-amber-100 text-amber-800 font-medium'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`
-                }
-              >
-                <FiHome size={18} />
-                <span className="hidden sm:inline">대시보드</span>
-              </NavLink>
-              <NavLink
-                to="/board"
-                className={({ isActive }) =>
-                  `flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? 'bg-amber-100 text-amber-800 font-medium'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`
-                }
-              >
-                <FiGrid size={18} />
-                <span className="hidden sm:inline">보드</span>
-              </NavLink>
-            </nav>
-
-            {/* 사용자 정보 */}
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-2 text-sm">
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: user?.department.color }}
-                />
-                <span className="text-gray-600">{user?.department.name}</span>
-                <span className="text-gray-400">|</span>
-                <span className="font-medium text-gray-800 flex items-center gap-1">
-                  <FiUser size={14} />
-                  {user?.name}
-                </span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                title="로그아웃"
-              >
-                <FiLogOut size={20} />
-              </button>
-            </div>
+    <div className="min-h-screen flex bg-slate-100">
+      {/* 좌측 아이콘 바 */}
+      <div className="w-16 bg-slate-700 flex flex-col items-center py-4 z-50">
+        {/* 로고 */}
+        <div className="mb-6">
+          <div className="w-10 h-10 bg-teal-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+            A
           </div>
         </div>
-      </header>
 
-      {/* 메인 컨텐츠 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <Outlet />
-      </main>
+        {/* 메뉴 아이콘 */}
+        <nav className="flex-1 flex flex-col items-center gap-2">
+          {menuItems.map((menu) => (
+            <button
+              key={menu.id}
+              onClick={() => handleMenuClick(menu)}
+              className={`
+                w-12 h-12 rounded-lg flex flex-col items-center justify-center gap-0.5
+                transition-all duration-200 group relative
+                ${activeMenu === menu.id || isMenuActive(menu)
+                  ? 'bg-teal-500 text-white'
+                  : 'text-slate-400 hover:bg-slate-600 hover:text-white'
+                }
+              `}
+              title={menu.label}
+            >
+              {menu.icon}
+              <span className="text-[9px] font-medium truncate w-full text-center px-0.5">
+                {menu.label.slice(0, 4)}
+              </span>
+            </button>
+          ))}
+        </nav>
+
+        {/* 하단 - 로그아웃 */}
+        <div className="mt-auto">
+          <button
+            onClick={handleLogout}
+            className="w-12 h-12 rounded-lg flex flex-col items-center justify-center gap-0.5 text-slate-400 hover:bg-slate-600 hover:text-white transition-all"
+            title="로그아웃"
+          >
+            <FiLogOut size={20} />
+            <span className="text-[9px]">로그아웃</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 서브메뉴 사이드바 */}
+      <AnimatePresence>
+        {activeMenu && menuItems.find(m => m.id === activeMenu)?.subItems && (
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 220, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="bg-slate-50 border-r border-slate-200 overflow-hidden z-40"
+          >
+            <div className="w-[220px] h-full flex flex-col">
+              {/* 서브메뉴 헤더 */}
+              <div className="h-14 px-4 flex items-center border-b border-slate-200 bg-white">
+                <h2 className="font-semibold text-slate-800">
+                  {menuItems.find(m => m.id === activeMenu)?.label}
+                </h2>
+              </div>
+
+              {/* 서브메뉴 아이템 */}
+              <div className="flex-1 py-2 overflow-y-auto">
+                {menuItems.find(m => m.id === activeMenu)?.subItems?.map((group, idx) => (
+                  <div key={group.id}>
+                    <NavLink
+                      to={group.path}
+                      className={({ isActive }) => `
+                        flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg
+                        transition-all duration-150
+                        ${isSubItemActive(group)
+                          ? 'bg-teal-500 text-white font-medium'
+                          : 'text-slate-600 hover:bg-slate-200'
+                        }
+                      `}
+                    >
+                      {group.icon}
+                      <span className="text-sm">{group.label}</span>
+                    </NavLink>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 메인 영역 */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* 상단 헤더 */}
+        <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm">
+          {/* 시스템 제목 */}
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-semibold text-slate-800">
+              <span className="text-teal-600">A</span>utomated{' '}
+              <span className="text-teal-600">I</span>mprovement{' '}
+              <span className="text-teal-600">M</span>anagement
+            </h1>
+          </div>
+
+          {/* 사용자 정보 */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 text-sm">
+              <div
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: user?.department.color }}
+              />
+              <span className="text-slate-500">{user?.department.name}</span>
+              <span className="text-slate-300">|</span>
+              <span className="font-medium text-slate-700 flex items-center gap-1.5">
+                <FiUser size={14} />
+                {user?.name}
+              </span>
+            </div>
+          </div>
+        </header>
+
+        {/* 콘텐츠 영역 */}
+        <main className="flex-1 overflow-auto bg-slate-100">
+          <div className="p-6">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
