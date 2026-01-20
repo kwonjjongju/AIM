@@ -197,90 +197,58 @@ export default function DashboardPage() {
         )}
       </motion.div>
 
-      {/* 상태별 현황 & 오래된 항목 (나란히) */}
-      <div className="grid md:grid-cols-2 gap-4">
-        {/* 상태별 현황 */}
+      {/* 오래된 항목 (컴팩트) */}
+      {summary?.staleItems && summary.staleItems.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="card"
+          className="card py-3"
         >
-          <h2 className="font-medium text-gray-700 mb-4">상태별 현황</h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center justify-between">
+            <h2 className="font-medium text-gray-700 text-sm">
+              ⚠️ 오래된 항목 <span className="text-gray-400">(30일+)</span>
+            </h2>
+            <div className="flex gap-2">
+              {summary.staleItems.slice(0, 3).map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setSelectedItemId(item.id)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-sm"
+                >
+                  <span className="font-medium text-gray-700 truncate max-w-[150px]">{item.title}</span>
+                  <span className="text-xs text-orange-600 font-medium">{item.daysSinceUpdate}일</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* 최근 등록된 항목 + 상태별 현황 */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h2 className="font-medium text-gray-700">최근 등록된 항목</h2>
+          {/* 상태별 현황 (인라인) */}
+          <div className="flex items-center gap-1.5 flex-wrap">
             {Object.entries(STATUS_CONFIG).map(([status, config]) => (
               <div
                 key={status}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-xs"
                 style={{ backgroundColor: `${config.color}15` }}
               >
-                <span className="text-lg">{config.icon}</span>
-                <span className="text-sm font-medium" style={{ color: config.color }}>
-                  {config.label}
-                </span>
-                <span className="text-sm font-bold" style={{ color: config.color }}>
+                <span>{config.icon}</span>
+                <span className="font-bold" style={{ color: config.color }}>
                   {summary?.byStatus[status as keyof typeof summary.byStatus] || 0}
                 </span>
               </div>
             ))}
           </div>
-        </motion.div>
-
-        {/* 오래된 항목 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="card"
-        >
-          <h2 className="font-medium text-gray-700 mb-3">
-            오래된 항목 <span className="text-sm text-gray-400">(30일+)</span>
-          </h2>
-          {summaryLoading ? (
-            <div className="space-y-2">
-              {Array(2)
-                .fill(0)
-                .map((_, i) => (
-                  <div key={i} className="h-12 bg-gray-100 animate-pulse rounded-lg" />
-                ))}
-            </div>
-          ) : summary?.staleItems.length === 0 ? (
-            <div className="flex items-center justify-center py-4 text-gray-400">
-              <span className="text-2xl mr-2">🎉</span>
-              <p className="text-sm">오래된 항목이 없어요!</p>
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-32 overflow-y-auto">
-              {summary?.staleItems.slice(0, 3).map((item, idx) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  onClick={() => setSelectedItemId(item.id)}
-                  className="flex items-center justify-between p-2 bg-orange-50 rounded-lg cursor-pointer hover:bg-orange-100 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{item.title}</p>
-                    <p className="text-xs text-gray-500">{item.department.name}</p>
-                  </div>
-                  <span className="flex-shrink-0 text-xs font-medium text-orange-600 ml-2">
-                    {item.daysSinceUpdate}일 전
-                  </span>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </motion.div>
-      </div>
-
-      {/* 최근 등록된 항목 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <h2 className="font-medium text-gray-700 mb-4">최근 등록된 항목</h2>
+        </div>
         {itemsLoading ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {Array(4)
