@@ -58,11 +58,11 @@ export interface PaginatedResponse<T> {
 
 // Status 관련 유틸리티
 export const STATUS_INFO: Record<ItemStatus, { icon: string; label: string; color: string }> = {
-  IDEA: { icon: '💡', label: '떠올림', color: '#FCD34D' },
-  REVIEWING: { icon: '👀', label: '보고 있음', color: '#60A5FA' },
-  IN_PROGRESS: { icon: '🛠️', label: '만지는 중', color: '#34D399' },
-  ON_HOLD: { icon: '⏸️', label: '잠깐 멈춤', color: '#9CA3AF' },
-  DONE: { icon: '✅', label: '정리됨', color: '#2DD4BF' },
+  IDEA: { icon: '💡', label: '신규', color: '#FCD34D' },
+  REVIEWING: { icon: '👀', label: '검토 중', color: '#60A5FA' },
+  IN_PROGRESS: { icon: '🛠️', label: '진행 중', color: '#34D399' },
+  ON_HOLD: { icon: '⏸️', label: '미선정', color: '#9CA3AF' },
+  DONE: { icon: '✅', label: '완료', color: '#2DD4BF' },
 };
 
 export function getStatusInfo(status: ItemStatus) {

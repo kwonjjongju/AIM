@@ -92,7 +92,7 @@ export default function DashboardPage() {
                   <FiCheckCircle className="text-teal-700" size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-teal-600 font-medium">정리됨</p>
+                  <p className="text-xs text-teal-600 font-medium">완료</p>
                   <p className="text-2xl font-bold text-teal-800">
                     {summary?.byStatus.DONE || 0}
                   </p>

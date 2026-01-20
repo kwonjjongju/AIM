@@ -107,9 +107,9 @@ export interface ApiResponse<T> {
 
 // 상태 정보
 export const STATUS_CONFIG: Record<ItemStatus, { icon: string; label: string; color: string; bgClass: string }> = {
-  IDEA: { icon: '💡', label: '떠올림', color: '#FCD34D', bgClass: 'bg-status-idea' },
-  REVIEWING: { icon: '👀', label: '보고 있음', color: '#60A5FA', bgClass: 'bg-status-reviewing' },
-  IN_PROGRESS: { icon: '🛠️', label: '만지는 중', color: '#34D399', bgClass: 'bg-status-progress' },
-  ON_HOLD: { icon: '⏸️', label: '잠깐 멈춤', color: '#9CA3AF', bgClass: 'bg-status-hold' },
-  DONE: { icon: '✅', label: '정리됨', color: '#2DD4BF', bgClass: 'bg-status-done' },
+  IDEA: { icon: '💡', label: '신규', color: '#FCD34D', bgClass: 'bg-status-idea' },
+  REVIEWING: { icon: '👀', label: '검토 중', color: '#60A5FA', bgClass: 'bg-status-reviewing' },
+  IN_PROGRESS: { icon: '🛠️', label: '진행 중', color: '#34D399', bgClass: 'bg-status-progress' },
+  ON_HOLD: { icon: '⏸️', label: '미선정', color: '#9CA3AF', bgClass: 'bg-status-hold' },
+  DONE: { icon: '✅', label: '완료', color: '#2DD4BF', bgClass: 'bg-status-done' },
 };
