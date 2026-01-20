@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -8,17 +8,14 @@ import {
   FiUser,
   FiSettings,
   FiLayers,
-  FiCheckSquare,
-  FiClock,
-  FiPauseCircle,
-  FiEye,
   FiUsers,
   FiFolder,
-  FiZap,
-  FiSearch
+  FiCircle
 } from 'react-icons/fi';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { authApi } from '../api/auth';
+import { departmentsApi } from '../api/departments';
 import toast from 'react-hot-toast';
 
 // 메뉴 구조 정의
@@ -27,6 +24,7 @@ interface SubMenuItem {
   label: string;
   path: string;
   icon?: React.ReactNode;
+  color?: string;
 }
 
 interface MenuItem {
@@ -37,7 +35,8 @@ interface MenuItem {
   path?: string;
 }
 
-const menuItems: MenuItem[] = [
+// 고정 메뉴 (부서 데이터 없이 정의할 수 있는 메뉴)
+const staticMenuItems: MenuItem[] = [
   {
     id: 'dashboard',
     label: '대시보드',
@@ -48,14 +47,7 @@ const menuItems: MenuItem[] = [
     id: 'board',
     label: '개선보드',
     icon: <FiGrid size={22} />,
-    subItems: [
-      { id: 'board-all', label: '전체 보기', path: '/board', icon: <FiLayers size={16} /> },
-      { id: 'board-idea', label: '💡 아이디어', path: '/board?status=idea', icon: <FiZap size={16} /> },
-      { id: 'board-reviewing', label: '👀 검토중', path: '/board?status=reviewing', icon: <FiSearch size={16} /> },
-      { id: 'board-progress', label: '🛠️ 진행중', path: '/board?status=in_progress', icon: <FiClock size={16} /> },
-      { id: 'board-hold', label: '⏸️ 보류', path: '/board?status=on_hold', icon: <FiPauseCircle size={16} /> },
-      { id: 'board-done', label: '✅ 완료', path: '/board?status=done', icon: <FiCheckSquare size={16} /> },
-    ],
+    subItems: [], // 동적으로 채워짐
   },
   {
     id: 'management',
@@ -74,6 +66,41 @@ export default function Layout() {
   const location = useLocation();
   const [activeMenu, setActiveMenu] = useState<string | null>('board');
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['board']);
+
+  // 부서 목록 가져오기
+  const { data: departments } = useQuery({
+    queryKey: ['departments'],
+    queryFn: departmentsApi.getDepartments,
+  });
+
+  // 부서 데이터를 기반으로 메뉴 아이템 생성
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(staticMenuItems);
+
+  useEffect(() => {
+    if (departments && departments.length > 0) {
+      const boardSubItems: SubMenuItem[] = [
+        { 
+          id: 'board-all', 
+          label: '전체 보기', 
+          path: '/board', 
+          icon: <FiLayers size={16} /> 
+        },
+        ...departments.map(dept => ({
+          id: `board-dept-${dept.id}`,
+          label: dept.name,
+          path: `/board?dept=${dept.id}`,
+          icon: <FiCircle size={12} style={{ color: dept.color, fill: dept.color }} />,
+          color: dept.color,
+        })),
+      ];
+
+      setMenuItems(prev => prev.map(item => 
+        item.id === 'board' 
+          ? { ...item, subItems: boardSubItems }
+          : item
+      ));
+    }
+  }, [departments]);
 
   const handleLogout = async () => {
     try {
@@ -195,21 +222,26 @@ export default function Layout() {
 
               {/* 서브메뉴 아이템 */}
               <div className="flex-1 py-2 overflow-y-auto">
-                {menuItems.find(m => m.id === activeMenu)?.subItems?.map((group, idx) => (
-                  <div key={group.id}>
+                {menuItems.find(m => m.id === activeMenu)?.subItems?.map((subItem) => (
+                  <div key={subItem.id}>
                     <NavLink
-                      to={group.path}
-                      className={({ isActive }) => `
+                      to={subItem.path}
+                      className={`
                         flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg
                         transition-all duration-150
-                        ${isSubItemActive(group)
+                        ${isSubItemActive(subItem)
                           ? 'bg-teal-500 text-white font-medium'
                           : 'text-slate-600 hover:bg-slate-200'
                         }
                       `}
+                      style={
+                        isSubItemActive(subItem) && subItem.color
+                          ? { backgroundColor: subItem.color }
+                          : undefined
+                      }
                     >
-                      {group.icon}
-                      <span className="text-sm">{group.label}</span>
+                      {subItem.icon}
+                      <span className="text-sm">{subItem.label}</span>
                     </NavLink>
                   </div>
                 ))}
