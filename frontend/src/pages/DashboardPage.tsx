@@ -68,7 +68,8 @@ export default function DashboardPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="card bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200"
+              onClick={() => navigate('/board')}
+              className="card bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-amber-200 rounded-lg">
@@ -85,7 +86,8 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="card bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200"
+              onClick={() => navigate('/board?status=DONE')}
+              className="card bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-teal-200 rounded-lg">
@@ -104,7 +106,8 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="card bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200"
+              onClick={() => navigate('/board?status=ON_HOLD')}
+              className="card bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-gray-200 rounded-lg">
@@ -123,7 +126,8 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="card bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200"
+              onClick={() => navigate('/board?stale=true')}
+              className="card bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-orange-200 rounded-lg">

@@ -17,7 +17,9 @@ export default function BoardPage() {
   const [selectedDeptId, setSelectedDeptId] = useState<string | null>(
     searchParams.get('dept')
   );
-  const [selectedStatus, setSelectedStatus] = useState<ItemStatus | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<ItemStatus | null>(
+    searchParams.get('status') as ItemStatus | null
+  );
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const { user } = useAuthStore();
@@ -25,8 +27,13 @@ export default function BoardPage() {
   // URL 파라미터 변경 시 상태 업데이트
   useEffect(() => {
     const deptParam = searchParams.get('dept');
+    const statusParam = searchParams.get('status') as ItemStatus | null;
+    
     if (deptParam !== selectedDeptId) {
       setSelectedDeptId(deptParam);
+    }
+    if (statusParam !== selectedStatus) {
+      setSelectedStatus(statusParam);
     }
   }, [searchParams]);
 
