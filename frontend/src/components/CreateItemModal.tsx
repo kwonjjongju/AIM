@@ -218,10 +218,10 @@ export default function CreateItemModal({ isOpen, onClose }: CreateItemModalProp
 
           {/* 모달 */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col"
+            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            className="fixed left-1/2 top-4 -translate-x-1/2 w-full max-w-2xl max-h-[calc(100vh-2rem)] bg-white rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col"
           >
             {/* 헤더 */}
             <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-teal-50 to-cyan-50 border-b border-teal-100">
