@@ -329,43 +329,43 @@ export default function BoardPage() {
             )}
           </motion.div>
         ) : groupedItems && !selectedStatus ? (
-          // 상태별 그룹화 표시
+          // 상태별 그룹화 표시 (세로 칼럼 레이아웃)
           <motion.div
             key="grouped"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="space-y-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
           >
             {groupedItems.map((group, groupIdx) => (
-              <div key={group.status}>
+              <div key={group.status} className="flex flex-col">
                 {/* 상태 그룹 헤더 */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
-                    style={{ backgroundColor: `${group.config.color}20` }}
+                <div
+                  className="flex items-center gap-2 px-3 py-2 rounded-t-lg border-b-2"
+                  style={{ 
+                    backgroundColor: `${group.config.color}15`,
+                    borderColor: group.config.color,
+                  }}
+                >
+                  <span className="text-lg">{group.config.icon}</span>
+                  <span
+                    className="font-bold text-sm flex-1"
+                    style={{ color: group.config.color }}
                   >
-                    <span className="text-lg">{group.config.icon}</span>
-                    <span
-                      className="font-bold text-sm"
-                      style={{ color: group.config.color }}
-                    >
-                      {group.config.label}
-                    </span>
-                    <span
-                      className="text-xs font-medium px-1.5 py-0.5 rounded-full"
-                      style={{
-                        backgroundColor: group.config.color,
-                        color: 'white',
-                      }}
-                    >
-                      {group.items.length}
-                    </span>
-                  </div>
-                  <div className="flex-1 h-px bg-gray-200" />
+                    {group.config.label}
+                  </span>
+                  <span
+                    className="text-xs font-bold px-2 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: group.config.color,
+                      color: 'white',
+                    }}
+                  >
+                    {group.items.length}
+                  </span>
                 </div>
-                {/* 그룹 내 카드 그리드 */}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {/* 그룹 내 카드 (세로 배치) */}
+                <div className="flex flex-col gap-3 p-2 bg-gray-50 rounded-b-lg min-h-[200px]">
                   {group.items.map((item, idx) => (
                     <ImprovementCard
                       key={item.id}
