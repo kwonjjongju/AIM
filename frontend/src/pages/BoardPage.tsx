@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { FiPlus, FiFilter, FiRefreshCw } from 'react-icons/fi';
+import { FiPlus, FiRefreshCw } from 'react-icons/fi';
 import { departmentsApi } from '../api/departments';
 import { itemsApi } from '../api/items';
 import { useAuthStore } from '../store/authStore';
@@ -29,9 +29,10 @@ export default function BoardPage() {
     }
   }, [searchParams]);
 
-  // 부서 선택 시 URL 파라미터도 업데이트
+  // 본부 선택 시 URL 파라미터도 업데이트
   const handleDeptSelect = (deptId: string | null) => {
     setSelectedDeptId(deptId);
+    setSelectedStatus(null); // 본부 변경 시 상태 필터 초기화
     if (deptId) {
       setSearchParams({ dept: deptId });
     } else {
@@ -56,10 +57,8 @@ export default function BoardPage() {
 
   const canCreate = user?.role !== 'EXECUTIVE';
 
-  const clearFilters = () => {
-    handleDeptSelect(null);
-    setSelectedStatus(null);
-  };
+  // 선택된 본부 정보 가져오기
+  const selectedDept = departments?.find(d => d.id === selectedDeptId);
 
   return (
     <div className="space-y-6">
@@ -67,10 +66,10 @@ export default function BoardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-display font-bold text-gray-800">
-            보드 📋
+            개선보드 📋
           </h1>
           <p className="text-gray-500 mt-1">
-            본부별/상태별로 개선 항목을 확인하세요
+            본부별로 개선 항목을 확인하고 관리하세요
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -95,86 +94,136 @@ export default function BoardPage() {
         </div>
       </div>
 
-      {/* 본부 탭 */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* 메인 탭: 전체보기 */}
+      <div className="flex items-center gap-2">
         <button
           onClick={() => handleDeptSelect(null)}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+          className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${
             selectedDeptId === null
-              ? 'bg-gray-800 text-white shadow-md'
-              : 'bg-white text-gray-600 hover:bg-gray-100'
+              ? 'bg-gray-800 text-white shadow-lg'
+              : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
           }`}
         >
-          전체
+          📊 전체보기
         </button>
-        {departments?.map((dept) => (
-          <button
-            key={dept.id}
-            onClick={() => handleDeptSelect(dept.id)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-              selectedDeptId === dept.id
-                ? 'text-white shadow-md'
-                : 'bg-white hover:bg-gray-100'
-            }`}
-            style={{
-              backgroundColor: selectedDeptId === dept.id ? dept.color : undefined,
-              color: selectedDeptId === dept.id ? 'white' : dept.color,
-            }}
-          >
-            {dept.name}
-          </button>
-        ))}
       </div>
 
-      {/* 상태 필터 */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="flex items-center gap-1 text-sm text-gray-500">
-          <FiFilter size={14} />
-          상태:
-        </span>
-        <button
-          onClick={() => setSelectedStatus(null)}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-            selectedStatus === null
-              ? 'bg-gray-700 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          전체
-        </button>
-        {(Object.keys(STATUS_CONFIG) as ItemStatus[]).map((status) => {
-          const config = STATUS_CONFIG[status];
-          return (
+      {/* 본부 탭 (8개) */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <p className="text-xs text-gray-400 mb-3 font-medium">본부 선택</p>
+        <div className="flex flex-wrap gap-2">
+          {departments?.map((dept) => (
             <button
-              key={status}
-              onClick={() => setSelectedStatus(status)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1 ${
-                selectedStatus === status ? 'shadow-md' : 'hover:opacity-80'
+              key={dept.id}
+              onClick={() => handleDeptSelect(dept.id)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border-2 ${
+                selectedDeptId === dept.id
+                  ? 'text-white shadow-md scale-105'
+                  : 'bg-white hover:scale-102'
               }`}
               style={{
-                backgroundColor:
-                  selectedStatus === status ? config.color : `${config.color}30`,
-                color: selectedStatus === status ? 'white' : config.color,
+                backgroundColor: selectedDeptId === dept.id ? dept.color : 'white',
+                borderColor: dept.color,
+                color: selectedDeptId === dept.id ? 'white' : dept.color,
               }}
             >
-              <span>{config.icon}</span>
-              <span>{config.label}</span>
+              {dept.name}
             </button>
-          );
-        })}
+          ))}
+        </div>
+      </div>
+
+      {/* 상태 탭 (본부 선택 시에만 표시) */}
+      <AnimatePresence>
+        {selectedDeptId && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: selectedDept?.color }}
+              />
+              <p className="text-sm font-bold text-gray-700">
+                {selectedDept?.name} 상태별 보기
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedStatus(null)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  selectedStatus === null
+                    ? 'bg-gray-700 text-white shadow-md'
+                    : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-300'
+                }`}
+              >
+                전체
+              </button>
+              {(Object.keys(STATUS_CONFIG) as ItemStatus[]).map((status) => {
+                const config = STATUS_CONFIG[status];
+                return (
+                  <button
+                    key={status}
+                    onClick={() => setSelectedStatus(status)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                      selectedStatus === status ? 'shadow-md scale-105' : 'hover:scale-102'
+                    }`}
+                    style={{
+                      backgroundColor:
+                        selectedStatus === status ? config.color : 'white',
+                      color: selectedStatus === status ? 'white' : config.color,
+                      border: `2px solid ${config.color}`,
+                    }}
+                  >
+                    <span className="text-base">{config.icon}</span>
+                    <span>{config.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 현재 필터 상태 표시 */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-gray-500">현재 보기:</span>
+          <span className="font-bold text-gray-800">
+            {selectedDeptId ? selectedDept?.name : '전체'}
+          </span>
+          {selectedStatus && (
+            <>
+              <span className="text-gray-400">›</span>
+              <span
+                className="font-medium px-2 py-0.5 rounded-full text-xs"
+                style={{
+                  backgroundColor: `${STATUS_CONFIG[selectedStatus].color}30`,
+                  color: STATUS_CONFIG[selectedStatus].color,
+                }}
+              >
+                {STATUS_CONFIG[selectedStatus].icon} {STATUS_CONFIG[selectedStatus].label}
+              </span>
+            </>
+          )}
+          <span className="text-gray-400 ml-2">
+            ({itemsData?.pagination.total || 0}건)
+          </span>
+        </div>
         {(selectedDeptId || selectedStatus) && (
           <button
-            onClick={clearFilters}
-            className="text-xs text-gray-400 hover:text-gray-600 underline ml-2"
+            onClick={() => {
+              handleDeptSelect(null);
+              setSelectedStatus(null);
+            }}
+            className="text-xs text-gray-400 hover:text-gray-600 underline"
           >
             필터 초기화
           </button>
         )}
-      </div>
-
-      {/* 결과 카운트 */}
-      <div className="text-sm text-gray-500">
-        총 <span className="font-bold text-gray-800">{itemsData?.pagination.total || 0}</span>건
       </div>
 
       {/* 카드 그리드 */}
@@ -202,7 +251,11 @@ export default function BoardPage() {
             className="flex flex-col items-center justify-center py-20 text-gray-400"
           >
             <span className="text-6xl mb-4">📭</span>
-            <p className="text-lg">등록된 항목이 없어요</p>
+            <p className="text-lg">
+              {selectedDeptId
+                ? `${selectedDept?.name}에 등록된 항목이 없어요`
+                : '등록된 항목이 없어요'}
+            </p>
             {canCreate && (
               <button
                 onClick={() => setIsCreateModalOpen(true)}
