@@ -67,6 +67,27 @@ export default function BoardPage() {
   // 선택된 본부 정보 가져오기
   const selectedDept = departments?.find(d => d.id === selectedDeptId);
 
+  // 현재 필터된 항목들의 상태별 건수 계산 (본부별 또는 전체)
+  const statusCounts = useMemo(() => {
+    if (!itemsData?.items) return null;
+    
+    const counts: Record<ItemStatus, number> = {
+      IDEA: 0,
+      REVIEWING: 0,
+      IN_PROGRESS: 0,
+      ON_HOLD: 0,
+      DONE: 0,
+    };
+    
+    itemsData.items.forEach(item => {
+      if (counts[item.status] !== undefined) {
+        counts[item.status]++;
+      }
+    });
+    
+    return counts;
+  }, [itemsData?.items]);
+
   // 상태별로 항목 그룹화 (selectedStatus가 없을 때만 그룹화)
   const groupedItems = useMemo(() => {
     if (!itemsData?.items || selectedStatus) return null;
@@ -264,7 +285,7 @@ export default function BoardPage() {
           )}
         </div>
 
-        {/* 상태별 현황 (간단 버전) */}
+        {/* 상태별 현황 (현재 필터 기준) */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {Object.entries(STATUS_CONFIG).map(([status, config]) => (
             <button
@@ -282,7 +303,7 @@ export default function BoardPage() {
             >
               <span>{config.icon}</span>
               <span className="font-bold">
-                {summary?.byStatus[status as keyof typeof summary.byStatus] || 0}
+                {statusCounts?.[status as ItemStatus] || 0}
               </span>
             </button>
           ))}
