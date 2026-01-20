@@ -96,9 +96,9 @@ export default function BoardPage() {
     return counts;
   }, [itemsData?.items]);
 
-  // 상태별로 항목 그룹화 (selectedStatus가 없을 때만 그룹화)
+  // 상태별로 항목 그룹화 (전체보기용 - selectedDeptId가 없을 때)
   const groupedItems = useMemo(() => {
-    if (!itemsData?.items || selectedStatus) return null;
+    if (!itemsData?.items || selectedStatus || selectedDeptId) return null;
     
     const statusOrder: ItemStatus[] = ['IDEA', 'REVIEWING', 'IN_PROGRESS', 'ON_HOLD', 'DONE'];
     const groups: Record<ItemStatus, typeof itemsData.items> = {
@@ -120,7 +120,33 @@ export default function BoardPage() {
       config: STATUS_CONFIG[status],
       items: groups[status],
     })).filter(group => group.items.length > 0);
-  }, [itemsData?.items, selectedStatus]);
+  }, [itemsData?.items, selectedStatus, selectedDeptId]);
+
+  // 본부별 상태 그룹화 (selectedDeptId가 있을 때)
+  const groupedItemsForDept = useMemo(() => {
+    if (!itemsData?.items || selectedStatus || !selectedDeptId) return null;
+    
+    const statusOrder: ItemStatus[] = ['IDEA', 'REVIEWING', 'IN_PROGRESS', 'ON_HOLD', 'DONE'];
+    const groups: Record<ItemStatus, typeof itemsData.items> = {
+      IDEA: [],
+      REVIEWING: [],
+      IN_PROGRESS: [],
+      ON_HOLD: [],
+      DONE: [],
+    };
+    
+    itemsData.items.forEach(item => {
+      if (groups[item.status]) {
+        groups[item.status].push(item);
+      }
+    });
+    
+    return statusOrder.map(status => ({
+      status,
+      config: STATUS_CONFIG[status],
+      items: groups[status],
+    }));
+  }, [itemsData?.items, selectedStatus, selectedDeptId]);
 
   return (
     <div className="space-y-6">
@@ -339,55 +365,87 @@ export default function BoardPage() {
               </button>
             )}
           </motion.div>
-        ) : selectedDeptId && !selectedStatus ? (
-          // 본부별 보기 - 진행률 게이지와 함께 표시
+        ) : selectedDeptId && !selectedStatus && groupedItemsForDept ? (
+          // 본부별 보기 - 진행률 게이지 + 칸반 보드 함께 표시
           <motion.div
             key="dept-view"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="space-y-4"
+            className="space-y-6"
           >
-            {/* 안건 목록 (게이지 포함) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {itemsData?.items.map((item, idx) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  onClick={() => setSelectedItemId(item.id)}
-                  className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
-                >
-                  {/* 진행률 게이지 */}
-                  <ProgressGauge
-                    title={item.title}
-                    status={item.status}
-                  />
-                  
-                  {/* 상태 배지 */}
-                  <div className="flex items-center justify-center mt-3">
+            {/* 진행률 게이지 요약 */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <h3 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                📊 안건별 진행 현황
+                <span className="text-xs font-normal text-gray-400">
+                  (클릭하면 상세보기)
+                </span>
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                {itemsData?.items.map((item, idx) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.03 }}
+                    onClick={() => setSelectedItemId(item.id)}
+                    className="bg-gray-50 rounded-lg p-3 cursor-pointer hover:bg-gray-100 hover:shadow-md transition-all"
+                  >
+                    <ProgressGauge
+                      title={item.title}
+                      status={item.status}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* 기존 칸반 보드 (상태별 그룹화) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              {groupedItemsForDept.map((group, groupIdx) => (
+                <div key={group.status} className="flex flex-col">
+                  {/* 상태 그룹 헤더 */}
+                  <div
+                    className="flex items-center gap-2 px-3 py-2 rounded-t-lg border-b-2"
+                    style={{ 
+                      backgroundColor: `${group.config.color}15`,
+                      borderColor: group.config.color,
+                    }}
+                  >
+                    <span className="text-lg">{group.config.icon}</span>
                     <span
-                      className="text-xs font-bold px-3 py-1 rounded-full"
+                      className="font-bold text-sm flex-1"
+                      style={{ color: group.config.color }}
+                    >
+                      {group.config.label}
+                    </span>
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded-full"
                       style={{
-                        backgroundColor: `${STATUS_CONFIG[item.status].color}20`,
-                        color: STATUS_CONFIG[item.status].color,
+                        backgroundColor: group.config.color,
+                        color: 'white',
                       }}
                     >
-                      {STATUS_CONFIG[item.status].icon} {STATUS_CONFIG[item.status].label}
+                      {group.items.length}
                     </span>
                   </div>
-                  
-                  {/* 작성자 & 날짜 */}
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400">
-                    <span>👤 {item.createdBy.name}</span>
-                    <span>📅 {new Date(item.createdAt).toLocaleDateString('ko-KR')}</span>
+                  {/* 그룹 내 카드 (세로 배치) */}
+                  <div className="flex flex-col gap-3 p-2 bg-gray-50 rounded-b-lg min-h-[200px]">
+                    {group.items.map((item, idx) => (
+                      <ImprovementCard
+                        key={item.id}
+                        item={item}
+                        index={groupIdx * 10 + idx}
+                        onClick={() => setSelectedItemId(item.id)}
+                      />
+                    ))}
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </motion.div>
-        ) : groupedItems && !selectedStatus ? (
+        ) : groupedItems && !selectedStatus && !selectedDeptId ? (
           // 전체보기 - 상태별 그룹화 표시 (세로 칼럼 레이아웃)
           <motion.div
             key="grouped"
