@@ -11,6 +11,7 @@ import { STATUS_CONFIG, type ItemStatus } from '../types';
 import ImprovementCard from '../components/ImprovementCard';
 import CreateItemModal from '../components/CreateItemModal';
 import ItemDetailModal from '../components/ItemDetailModal';
+import ProgressGauge from '../components/ProgressGauge';
 
 export default function BoardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -338,8 +339,57 @@ export default function BoardPage() {
               </button>
             )}
           </motion.div>
+        ) : selectedDeptId && !selectedStatus ? (
+          // 본부별 보기 - 진행률 게이지와 함께 표시
+          <motion.div
+            key="dept-view"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-4"
+          >
+            {/* 안건 목록 (게이지 포함) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {itemsData?.items.map((item, idx) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  onClick={() => setSelectedItemId(item.id)}
+                  className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
+                >
+                  {/* 진행률 게이지 */}
+                  <ProgressGauge
+                    title={item.title}
+                    status={item.status}
+                    size="sm"
+                  />
+                  
+                  {/* 상태 배지 */}
+                  <div className="flex items-center justify-center mt-3">
+                    <span
+                      className="text-xs font-bold px-3 py-1 rounded-full"
+                      style={{
+                        backgroundColor: `${STATUS_CONFIG[item.status].color}20`,
+                        color: STATUS_CONFIG[item.status].color,
+                      }}
+                    >
+                      {STATUS_CONFIG[item.status].icon} {STATUS_CONFIG[item.status].label}
+                    </span>
+                  </div>
+                  
+                  {/* 작성자 & 날짜 */}
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400">
+                    <span>👤 {item.createdBy.name}</span>
+                    <span>📅 {new Date(item.createdAt).toLocaleDateString('ko-KR')}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         ) : groupedItems && !selectedStatus ? (
-          // 상태별 그룹화 표시 (세로 칼럼 레이아웃)
+          // 전체보기 - 상태별 그룹화 표시 (세로 칼럼 레이아웃)
           <motion.div
             key="grouped"
             initial={{ opacity: 0 }}
