@@ -67,6 +67,32 @@ export default function BoardPage() {
   // 선택된 본부 정보 가져오기
   const selectedDept = departments?.find(d => d.id === selectedDeptId);
 
+  // 상태별로 항목 그룹화 (selectedStatus가 없을 때만 그룹화)
+  const groupedItems = useMemo(() => {
+    if (!itemsData?.items || selectedStatus) return null;
+    
+    const statusOrder: ItemStatus[] = ['IDEA', 'REVIEWING', 'IN_PROGRESS', 'ON_HOLD', 'DONE'];
+    const groups: Record<ItemStatus, typeof itemsData.items> = {
+      IDEA: [],
+      REVIEWING: [],
+      IN_PROGRESS: [],
+      ON_HOLD: [],
+      DONE: [],
+    };
+    
+    itemsData.items.forEach(item => {
+      if (groups[item.status]) {
+        groups[item.status].push(item);
+      }
+    });
+    
+    return statusOrder.map(status => ({
+      status,
+      config: STATUS_CONFIG[status],
+      items: groups[status],
+    })).filter(group => group.items.length > 0);
+  }, [itemsData?.items, selectedStatus]);
+
   return (
     <div className="space-y-6">
       {/* 헤더 */}
@@ -302,7 +328,58 @@ export default function BoardPage() {
               </button>
             )}
           </motion.div>
+        ) : groupedItems && !selectedStatus ? (
+          // 상태별 그룹화 표시
+          <motion.div
+            key="grouped"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-6"
+          >
+            {groupedItems.map((group, groupIdx) => (
+              <div key={group.status}>
+                {/* 상태 그룹 헤더 */}
+                <div className="flex items-center gap-2 mb-3">
+                  <div
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+                    style={{ backgroundColor: `${group.config.color}20` }}
+                  >
+                    <span className="text-lg">{group.config.icon}</span>
+                    <span
+                      className="font-bold text-sm"
+                      style={{ color: group.config.color }}
+                    >
+                      {group.config.label}
+                    </span>
+                    <span
+                      className="text-xs font-medium px-1.5 py-0.5 rounded-full"
+                      style={{
+                        backgroundColor: group.config.color,
+                        color: 'white',
+                      }}
+                    >
+                      {group.items.length}
+                    </span>
+                  </div>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+                {/* 그룹 내 카드 그리드 */}
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {group.items.map((item, idx) => (
+                    <ImprovementCard
+                      key={item.id}
+                      item={item}
+                      index={groupIdx * 10 + idx}
+                      onClick={() => setSelectedItemId(item.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </motion.div>
         ) : (
+          // 단일 상태 필터 시 기존 그리드
           <motion.div
             key="grid"
             initial={{ opacity: 0 }}
