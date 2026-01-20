@@ -36,10 +36,10 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-display font-bold text-gray-800">
-            현황 훑어보기 👀
+            종합 현황
           </h1>
           <p className="text-gray-500 mt-1">
-            요즘 회사에서 어떤 이야기들이 오가는지 한눈에!
+            AI 활용 업무개선 현황 한눈에 보기
           </p>
         </div>
         {canCreate && (
