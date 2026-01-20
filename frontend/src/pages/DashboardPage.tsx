@@ -151,40 +151,47 @@ export default function DashboardPage() {
         <h2 className="font-semibold text-gray-700 mb-2 text-lg">본부별 현황</h2>
         <p className="text-xs text-gray-400 mb-4">클릭하면 해당 본부 보드로 이동</p>
         {summaryLoading ? (
-          <div className="h-80 bg-gray-100 animate-pulse rounded-lg" />
+          <div className="h-72 bg-gray-100 animate-pulse rounded-lg" />
         ) : (
-          <div className="flex justify-center gap-3 overflow-x-auto pb-2">
+          <div className="flex justify-center gap-4 overflow-x-auto pb-2">
             {summary?.byDepartment.map((dept) => {
               const maxCount = Math.max(...(summary?.byDepartment.map(d => d.count) || [1]));
               const heightPercent = maxCount > 0 ? (dept.count / maxCount) * 100 : 0;
-              const minHeight = 20;
-              const maxHeight = 180;
+              const minHeight = 30;
+              const maxHeight = 150;
               const barHeight = Math.max(minHeight, (heightPercent / 100) * maxHeight);
               
               return (
                 <button
                   key={dept.id}
                   onClick={() => navigate(`/board?dept=${dept.id}`)}
-                  className="flex flex-col items-center gap-2 group cursor-pointer transition-transform hover:scale-105"
+                  className="flex flex-col items-center group cursor-pointer transition-transform hover:scale-105"
+                  style={{ width: '80px' }}
                 >
                   {/* 건수 */}
                   <span
-                    className="text-sm font-bold"
+                    className="text-sm font-bold mb-1"
                     style={{ color: dept.color }}
                   >
                     {dept.count}
                   </span>
-                  {/* 막대 */}
-                  <div
-                    className="w-12 rounded-t-lg transition-all group-hover:shadow-lg"
-                    style={{
-                      height: `${barHeight}px`,
-                      backgroundColor: dept.color,
-                    }}
-                  />
+                  {/* 막대 컨테이너 (고정 높이) */}
+                  <div 
+                    className="flex items-end justify-center"
+                    style={{ height: `${maxHeight}px` }}
+                  >
+                    {/* 막대 */}
+                    <div
+                      className="w-10 rounded-t-lg transition-all group-hover:shadow-lg"
+                      style={{
+                        height: `${barHeight}px`,
+                        backgroundColor: dept.color,
+                      }}
+                    />
+                  </div>
                   {/* 본부 이름 (도형으로 감싸기) */}
                   <div
-                    className="px-2 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all group-hover:shadow-md"
+                    className="mt-2 px-2 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all group-hover:shadow-md"
                     style={{
                       backgroundColor: `${dept.color}20`,
                       color: dept.color,
