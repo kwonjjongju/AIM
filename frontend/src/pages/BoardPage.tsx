@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { FiPlus, FiRefreshCw } from 'react-icons/fi';
 import { departmentsApi } from '../api/departments';
 import { itemsApi } from '../api/items';
+import { dashboardApi } from '../api/dashboard';
 import { useAuthStore } from '../store/authStore';
 import { STATUS_CONFIG, type ItemStatus } from '../types';
 import ImprovementCard from '../components/ImprovementCard';
@@ -53,6 +54,12 @@ export default function BoardPage() {
         status: selectedStatus || undefined,
         limit: 100,
       }),
+  });
+
+  // 상태별 요약 데이터
+  const { data: summary } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: dashboardApi.getSummary,
   });
 
   const canCreate = user?.role !== 'EXECUTIVE';
@@ -188,8 +195,8 @@ export default function BoardPage() {
         )}
       </AnimatePresence>
 
-      {/* 현재 필터 상태 표시 */}
-      <div className="flex items-center justify-between">
+      {/* 현재 필터 상태 표시 + 상태별 현황 */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-gray-500">현재 보기:</span>
           <span className="font-bold text-gray-800">
@@ -212,18 +219,42 @@ export default function BoardPage() {
           <span className="text-gray-400 ml-2">
             ({itemsData?.pagination.total || 0}건)
           </span>
+          {(selectedDeptId || selectedStatus) && (
+            <button
+              onClick={() => {
+                handleDeptSelect(null);
+                setSelectedStatus(null);
+              }}
+              className="text-xs text-gray-400 hover:text-gray-600 underline ml-2"
+            >
+              초기화
+            </button>
+          )}
         </div>
-        {(selectedDeptId || selectedStatus) && (
-          <button
-            onClick={() => {
-              handleDeptSelect(null);
-              setSelectedStatus(null);
-            }}
-            className="text-xs text-gray-400 hover:text-gray-600 underline"
-          >
-            필터 초기화
-          </button>
-        )}
+
+        {/* 상태별 현황 (간단 버전) */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {Object.entries(STATUS_CONFIG).map(([status, config]) => (
+            <button
+              key={status}
+              onClick={() => setSelectedStatus(status as ItemStatus)}
+              className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all hover:scale-105 ${
+                selectedStatus === status ? 'ring-2 ring-offset-1' : ''
+              }`}
+              style={{ 
+                backgroundColor: `${config.color}15`,
+                color: config.color,
+                ringColor: config.color,
+              }}
+              title={`${config.label} 필터`}
+            >
+              <span>{config.icon}</span>
+              <span className="font-bold">
+                {summary?.byStatus[status as keyof typeof summary.byStatus] || 0}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 카드 그리드 */}
