@@ -4,113 +4,126 @@ import type { ItemStatus } from '../types';
 interface ProgressGaugeProps {
   title: string;
   status: ItemStatus;
-  size?: 'sm' | 'md' | 'lg';
 }
 
 // 상태별 진행률 매핑
 const STATUS_PROGRESS: Record<ItemStatus, number> = {
-  IDEA: 0,           // 신규: 0%
-  REVIEWING: 25,     // 검토 중: 25%
-  ON_HOLD: 50,       // 미선정: 50%
-  IN_PROGRESS: 75,   // 진행 중: 75%
-  DONE: 100,         // 완료: 100%
+  IDEA: 0,           // 신규 - 0%
+  REVIEWING: 25,     // 검토 중 - 25%
+  ON_HOLD: 50,       // 미선정 - 50%
+  IN_PROGRESS: 75,   // 진행 중 - 75%
+  DONE: 100,         // 완료 - 100%
 };
 
-// 상태별 색상
-const STATUS_COLORS: Record<ItemStatus, { start: string; end: string }> = {
-  IDEA: { start: '#9CA3AF', end: '#D1D5DB' },
-  REVIEWING: { start: '#3B82F6', end: '#93C5FD' },
-  ON_HOLD: { start: '#F59E0B', end: '#FCD34D' },
-  IN_PROGRESS: { start: '#10B981', end: '#6EE7B7' },
-  DONE: { start: '#059669', end: '#34D399' },
+const STATUS_LABELS: Record<ItemStatus, string> = {
+  IDEA: '신규',
+  REVIEWING: '검토 중',
+  ON_HOLD: '미선정',
+  IN_PROGRESS: '진행 중',
+  DONE: '완료',
 };
 
-export default function ProgressGauge({ title, status, size = 'md' }: ProgressGaugeProps) {
+export default function ProgressGauge({ title, status }: ProgressGaugeProps) {
   const progress = STATUS_PROGRESS[status];
-  const colors = STATUS_COLORS[status];
+  const statusLabel = STATUS_LABELS[status];
   
-  // 크기 설정
-  const sizeConfig = {
-    sm: { width: 120, height: 70, strokeWidth: 8, fontSize: 'text-lg', titleSize: 'text-xs' },
-    md: { width: 160, height: 90, strokeWidth: 10, fontSize: 'text-2xl', titleSize: 'text-sm' },
-    lg: { width: 200, height: 110, strokeWidth: 12, fontSize: 'text-3xl', titleSize: 'text-base' },
+  // 반원 게이지 계산 (180도 = 100%)
+  const angle = (progress / 100) * 180;
+  
+  // SVG 아크 경로 계산
+  const radius = 60;
+  const strokeWidth = 10;
+  const centerX = 80;
+  const centerY = 70;
+  
+  // 시작점 (왼쪽 끝)
+  const startX = centerX - radius;
+  const startY = centerY;
+  
+  // 끝점 계산 (각도에 따라)
+  const endAngle = Math.PI - (angle * Math.PI) / 180;
+  const endX = centerX + radius * Math.cos(endAngle);
+  const endY = centerY - radius * Math.sin(endAngle);
+  
+  // 아크 플래그 (180도 이상이면 1)
+  const largeArcFlag = angle > 180 ? 1 : 0;
+  
+  // 진행률에 따른 색상
+  const getProgressColor = (prog: number) => {
+    if (prog === 0) return '#E5E7EB';
+    if (prog <= 25) return '#10B981'; // 초록
+    if (prog <= 50) return '#F59E0B'; // 주황
+    if (prog <= 75) return '#F97316'; // 진한 주황
+    return '#10B981'; // 완료 - 초록
   };
-  
-  const config = sizeConfig[size];
-  const radius = (config.width - config.strokeWidth) / 2;
-  const circumference = Math.PI * radius; // 반원의 둘레
-  const progressOffset = circumference - (progress / 100) * circumference;
-  
-  const centerX = config.width / 2;
-  const centerY = config.height - 10;
 
+  const progressColor = getProgressColor(progress);
+  
   return (
     <div className="flex flex-col items-center">
-      {/* 제목 */}
-      <p className={`font-bold text-gray-700 mb-1 ${config.titleSize} truncate max-w-full px-2 text-center`}>
-        {title}
-      </p>
-      <p className="text-[10px] text-gray-400 mb-2">안건 진행률</p>
-      
-      {/* 게이지 */}
-      <div className="relative" style={{ width: config.width, height: config.height }}>
-        <svg
-          width={config.width}
-          height={config.height}
-          className="transform"
-        >
-          {/* 배경 호 (회색) */}
-          <path
-            d={`M ${config.strokeWidth / 2} ${centerY} A ${radius} ${radius} 0 0 1 ${config.width - config.strokeWidth / 2} ${centerY}`}
-            fill="none"
-            stroke="#E5E7EB"
-            strokeWidth={config.strokeWidth}
-            strokeLinecap="round"
-          />
-          
-          {/* 진행률 호 (컬러) */}
-          <motion.path
-            d={`M ${config.strokeWidth / 2} ${centerY} A ${radius} ${radius} 0 0 1 ${config.width - config.strokeWidth / 2} ${centerY}`}
-            fill="none"
-            stroke={`url(#gradient-${status})`}
-            strokeWidth={config.strokeWidth}
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset: progressOffset }}
-            transition={{ duration: 1, ease: 'easeOut' }}
-          />
-          
-          {/* 그라데이션 정의 */}
-          <defs>
-            <linearGradient id={`gradient-${status}`} x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor={colors.start} />
-              <stop offset="100%" stopColor={colors.end} />
-            </linearGradient>
-          </defs>
-        </svg>
-        
-        {/* 퍼센트 텍스트 */}
-        <div 
-          className="absolute inset-0 flex items-end justify-center pb-1"
-          style={{ paddingBottom: size === 'sm' ? '2px' : '8px' }}
-        >
-          <motion.span
-            className={`font-bold ${config.fontSize}`}
-            style={{ color: colors.start }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            {progress}%
-          </motion.span>
-        </div>
+      {/* 안건명 */}
+      <div className="text-center mb-1">
+        <p className="text-xs font-semibold text-gray-500">안건명</p>
+        <p className="text-sm font-bold text-gray-700 truncate max-w-[150px]" title={title}>
+          {title.length > 12 ? `${title.slice(0, 12)}...` : title}
+        </p>
       </div>
       
-      {/* 라벨 */}
-      <div className="flex justify-between w-full px-2 mt-1">
-        <span className="text-[10px] font-medium text-gray-500">시작</span>
-        <span className="text-[10px] font-medium text-gray-500">완료</span>
+      {/* 게이지 */}
+      <div className="relative flex justify-center">
+        <svg width="160" height="90" viewBox="0 0 160 90">
+          {/* 배경 아크 (회색) */}
+          <path
+            d={`M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${centerX + radius} ${startY}`}
+            fill="none"
+            stroke="#E5E7EB"
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+          />
+          
+          {/* 진행 아크 (색상) */}
+          {progress > 0 && (
+            <motion.path
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+              d={`M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}`}
+              fill="none"
+              stroke={progressColor}
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+            />
+          )}
+          
+          {/* 퍼센트 텍스트 */}
+          <text
+            x={centerX}
+            y={centerY - 8}
+            textAnchor="middle"
+            fontSize="24"
+            fontWeight="bold"
+            fill="#374151"
+          >
+            {progress}%
+          </text>
+          
+          {/* 상태 라벨 */}
+          <text
+            x={centerX}
+            y={centerY + 10}
+            textAnchor="middle"
+            fontSize="11"
+            fill="#6B7280"
+          >
+            {statusLabel}
+          </text>
+        </svg>
+      </div>
+      
+      {/* 시작 / 완료 라벨 */}
+      <div className="flex justify-between w-full px-2 -mt-1">
+        <span className="text-xs font-medium text-emerald-600">시작</span>
+        <span className="text-xs font-medium text-orange-500">완료</span>
       </div>
     </div>
   );

@@ -363,7 +363,6 @@ export default function BoardPage() {
                   <ProgressGauge
                     title={item.title}
                     status={item.status}
-                    size="sm"
                   />
                   
                   {/* 상태 배지 */}
