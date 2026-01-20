@@ -140,16 +140,15 @@ export default function BoardPage() {
         </div>
       </div>
 
-      {/* 상태 탭 (본부 선택 시에만 표시) */}
-      <AnimatePresence>
-        {selectedDeptId && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200"
-          >
-            <div className="flex items-center gap-2 mb-3">
+      {/* 상태 탭 (항상 표시) */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200"
+      >
+        <div className="flex items-center gap-2 mb-3">
+          {selectedDeptId ? (
+            <>
               <div
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: selectedDept?.color }}
@@ -157,43 +156,50 @@ export default function BoardPage() {
               <p className="text-sm font-bold text-gray-700">
                 {selectedDept?.name} 상태별 보기
               </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
+            </>
+          ) : (
+            <>
+              <div className="w-3 h-3 rounded-full bg-gray-600" />
+              <p className="text-sm font-bold text-gray-700">
+                전체본부 상태별 보기
+              </p>
+            </>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setSelectedStatus(null)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              selectedStatus === null
+                ? 'bg-gray-700 text-white shadow-md'
+                : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-300'
+            }`}
+          >
+            전체
+          </button>
+          {(Object.keys(STATUS_CONFIG) as ItemStatus[]).map((status) => {
+            const config = STATUS_CONFIG[status];
+            return (
               <button
-                onClick={() => setSelectedStatus(null)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  selectedStatus === null
-                    ? 'bg-gray-700 text-white shadow-md'
-                    : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-300'
+                key={status}
+                onClick={() => setSelectedStatus(status)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                  selectedStatus === status ? 'shadow-md scale-105' : 'hover:scale-102'
                 }`}
+                style={{
+                  backgroundColor:
+                    selectedStatus === status ? config.color : 'white',
+                  color: selectedStatus === status ? 'white' : config.color,
+                  border: `2px solid ${config.color}`,
+                }}
               >
-                전체
+                <span className="text-base">{config.icon}</span>
+                <span>{config.label}</span>
               </button>
-              {(Object.keys(STATUS_CONFIG) as ItemStatus[]).map((status) => {
-                const config = STATUS_CONFIG[status];
-                return (
-                  <button
-                    key={status}
-                    onClick={() => setSelectedStatus(status)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                      selectedStatus === status ? 'shadow-md scale-105' : 'hover:scale-102'
-                    }`}
-                    style={{
-                      backgroundColor:
-                        selectedStatus === status ? config.color : 'white',
-                      color: selectedStatus === status ? 'white' : config.color,
-                      border: `2px solid ${config.color}`,
-                    }}
-                  >
-                    <span className="text-base">{config.icon}</span>
-                    <span>{config.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            );
+          })}
+        </div>
+      </motion.div>
 
       {/* 현재 필터 상태 표시 + 상태별 현황 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
