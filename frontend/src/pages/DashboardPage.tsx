@@ -148,7 +148,7 @@ export default function DashboardPage() {
         transition={{ delay: 0.2 }}
         className="card"
       >
-        <h2 className="font-semibold text-gray-700 mb-2 text-lg">본부별 현황</h2>
+        <h2 className="font-semibold text-gray-700 mb-2 text-lg">2026년 본부별 개선 검토 건 수</h2>
         <p className="text-xs text-gray-400 mb-4">클릭하면 해당 본부 보드로 이동</p>
         {summaryLoading ? (
           <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />
