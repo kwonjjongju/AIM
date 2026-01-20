@@ -160,6 +160,41 @@ AIM/
 - `GET /api/v1/users` - 사용자 목록
 - `GET /api/v1/users/me` - 내 정보
 
+## 🤖 AI 개발 규칙
+
+> **중요**: AI 어시스턴트가 이 프로젝트를 개발할 때 반드시 따라야 하는 규칙
+
+### Git 커밋 규칙
+**기능을 하나 완성할 때마다 반드시 Git 커밋을 수행할 것**
+
+```bash
+# 변경된 파일 스테이징
+git add .
+
+# 의미 있는 커밋 메시지와 함께 커밋
+git commit -m "feat: 기능 설명"
+```
+
+### 커밋 메시지 형식
+| 타입 | 설명 |
+|------|------|
+| `feat` | 새로운 기능 추가 |
+| `fix` | 버그 수정 |
+| `refactor` | 코드 리팩토링 |
+| `style` | UI/스타일 변경 |
+| `docs` | 문서 수정 |
+| `chore` | 기타 작업 (설정 등) |
+
+### 예시
+```bash
+git add .
+git commit -m "feat: 대시보드 차트 클릭 시 해당 본부 보드로 이동"
+git commit -m "fix: 로그인 토큰 갱신 오류 수정"
+git commit -m "style: 본부명 8개로 변경"
+```
+
+---
+
 ## 📌 참고사항
 
 ### 하지 않는 것 (Anti-Requirements)
