@@ -169,30 +169,27 @@ export default function BoardPage() {
         </button>
       </div>
 
-      {/* 본부 탭 (8개) */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <p className="text-xs text-gray-400 mb-3 font-medium">본부 선택</p>
-        <div className="flex flex-wrap gap-2">
-          {departments?.map((dept) => (
-            <button
-              key={dept.id}
-              onClick={() => handleDeptSelect(dept.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border-2 ${
-                selectedDeptId === dept.id
-                  ? 'text-white shadow-md scale-105'
-                  : 'bg-white hover:scale-102'
-              }`}
-              style={{
-                backgroundColor: selectedDeptId === dept.id ? dept.color : 'white',
-                borderColor: dept.color,
-                color: selectedDeptId === dept.id ? 'white' : dept.color,
-              }}
-            >
-              {dept.name}
-            </button>
-          ))}
+      {/* 본부 탭 (8개) - 전체보기 모드일 때만 표시 */}
+      {selectedDeptId === null && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <p className="text-xs text-gray-400 mb-3 font-medium">본부 선택</p>
+          <div className="flex flex-wrap gap-2">
+            {departments?.map((dept) => (
+              <button
+                key={dept.id}
+                onClick={() => handleDeptSelect(dept.id)}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border-2 bg-white hover:scale-102"
+                style={{
+                  borderColor: dept.color,
+                  color: dept.color,
+                }}
+              >
+                {dept.name}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 상태 탭 (항상 표시) */}
       <motion.div
