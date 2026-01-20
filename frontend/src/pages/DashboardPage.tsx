@@ -151,72 +151,52 @@ export default function DashboardPage() {
         <h2 className="font-semibold text-gray-700 mb-2 text-lg">본부별 현황</h2>
         <p className="text-xs text-gray-400 mb-4">클릭하면 해당 본부 보드로 이동</p>
         {summaryLoading ? (
-          <div className="h-72 bg-gray-100 animate-pulse rounded-lg" />
+          <div className="h-80 bg-gray-100 animate-pulse rounded-lg" />
         ) : (
-          <>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart 
-                data={summary?.byDepartment} 
-                onClick={(data) => {
-                  if (data?.activePayload?.[0]?.payload) {
-                    const dept = data.activePayload[0].payload;
-                    navigate(`/board?dept=${dept.id}`);
-                  }
-                }}
-                style={{ cursor: 'pointer' }}
-                margin={{ top: 10, right: 10, left: 10, bottom: 5 }}
-              >
-                <XAxis dataKey="name" hide />
-                <YAxis hide />
-                <Tooltip
-                  formatter={(value) => [`${value}건`, '등록 건수']}
-                  contentStyle={{
-                    borderRadius: '8px',
-                    border: 'none',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  }}
-                  labelStyle={{ fontWeight: 'bold', fontSize: 14 }}
-                  cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                />
-                <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={50}>
-                  {summary?.byDepartment.map((dept, idx) => (
-                    <Cell 
-                      key={idx} 
-                      fill={dept.color}
-                      style={{ cursor: 'pointer' }}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-            {/* 본부 라벨 (도형으로 감싸기) */}
-            <div className="flex flex-wrap justify-center gap-2 mt-2">
-              {summary?.byDepartment.map((dept) => (
+          <div className="flex justify-center gap-3 overflow-x-auto pb-2">
+            {summary?.byDepartment.map((dept) => {
+              const maxCount = Math.max(...(summary?.byDepartment.map(d => d.count) || [1]));
+              const heightPercent = maxCount > 0 ? (dept.count / maxCount) * 100 : 0;
+              const minHeight = 20;
+              const maxHeight = 180;
+              const barHeight = Math.max(minHeight, (heightPercent / 100) * maxHeight);
+              
+              return (
                 <button
                   key={dept.id}
                   onClick={() => navigate(`/board?dept=${dept.id}`)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105 hover:shadow-md"
-                  style={{
-                    backgroundColor: `${dept.color}20`,
-                    color: dept.color,
-                    border: `2px solid ${dept.color}`,
-                  }}
+                  className="flex flex-col items-center gap-2 group cursor-pointer transition-transform hover:scale-105"
                 >
+                  {/* 건수 */}
                   <span
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: dept.color }}
-                  />
-                  {dept.name}
-                  <span
-                    className="ml-1 px-1.5 py-0.5 rounded-full text-white text-[10px]"
-                    style={{ backgroundColor: dept.color }}
+                    className="text-sm font-bold"
+                    style={{ color: dept.color }}
                   >
                     {dept.count}
                   </span>
+                  {/* 막대 */}
+                  <div
+                    className="w-12 rounded-t-lg transition-all group-hover:shadow-lg"
+                    style={{
+                      height: `${barHeight}px`,
+                      backgroundColor: dept.color,
+                    }}
+                  />
+                  {/* 본부 이름 (도형으로 감싸기) */}
+                  <div
+                    className="px-2 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all group-hover:shadow-md"
+                    style={{
+                      backgroundColor: `${dept.color}20`,
+                      color: dept.color,
+                      border: `2px solid ${dept.color}`,
+                    }}
+                  >
+                    {dept.name}
+                  </div>
                 </button>
-              ))}
-            </div>
-          </>
+              );
+            })}
+          </div>
         )}
       </motion.div>
 
