@@ -242,11 +242,11 @@ export const uploadService = {
             description: item.description || undefined,
             status: 'IDEA',
             departmentId: department.id,
-            createdById: userId,
+            createdBy: userId,
             statusHistory: {
               create: {
                 toStatus: 'IDEA',
-                changedById: userId,
+                changedBy: userId,
                 note: '엑셀 업로드로 자동 등록',
               },
             },
