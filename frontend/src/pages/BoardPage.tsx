@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { FiPlus, FiRefreshCw } from 'react-icons/fi';
+import { FiPlus, FiRefreshCw, FiUpload } from 'react-icons/fi';
 import { departmentsApi } from '../api/departments';
 import { itemsApi } from '../api/items';
 import { dashboardApi } from '../api/dashboard';
@@ -11,6 +11,7 @@ import { STATUS_CONFIG, type ItemStatus } from '../types';
 import ImprovementCard from '../components/ImprovementCard';
 import CreateItemModal from '../components/CreateItemModal';
 import ItemDetailModal from '../components/ItemDetailModal';
+import ExcelUploadModal from '../components/ExcelUploadModal';
 import ProgressGauge from '../components/ProgressGauge';
 
 export default function BoardPage() {
@@ -22,6 +23,7 @@ export default function BoardPage() {
     searchParams.get('status') as ItemStatus | null
   );
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isExcelUploadOpen, setIsExcelUploadOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const { user } = useAuthStore();
 
@@ -168,6 +170,17 @@ export default function BoardPage() {
           >
             <FiRefreshCw size={20} />
           </button>
+          {(user?.role === 'ADMIN' || user?.role === 'DEPT_MANAGER') && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setIsExcelUploadOpen(true)}
+              className="btn-secondary flex items-center gap-2"
+            >
+              <FiUpload size={18} />
+              엑셀 업로드
+            </motion.button>
+          )}
           {canCreate && (
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -531,6 +544,10 @@ export default function BoardPage() {
       <ItemDetailModal
         itemId={selectedItemId}
         onClose={() => setSelectedItemId(null)}
+      />
+      <ExcelUploadModal
+        isOpen={isExcelUploadOpen}
+        onClose={() => setIsExcelUploadOpen(false)}
       />
     </div>
   );
