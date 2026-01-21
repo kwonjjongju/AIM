@@ -31,6 +31,11 @@ interface UpdateStatusData {
   note?: string;
 }
 
+interface UpdateUrlsData {
+  gitUrl?: string | null;
+  webUrl?: string | null;
+}
+
 export const itemsApi = {
   getItems: async (params: GetItemsParams = {}): Promise<GetItemsResponse> => {
     const response = await api.get<ApiResponse<GetItemsResponse>>('/items', { params });
@@ -53,6 +58,11 @@ export const itemsApi = {
 
   updateStatus: async (id: string, data: UpdateStatusData): Promise<void> => {
     await api.patch(`/items/${id}/status`, data);
+  },
+
+  updateUrls: async (id: string, data: UpdateUrlsData): Promise<{ gitUrl?: string; webUrl?: string }> => {
+    const response = await api.patch<ApiResponse<{ gitUrl?: string; webUrl?: string }>>(`/items/${id}/urls`, data);
+    return response.data.data!;
   },
 
   deleteItem: async (id: string): Promise<void> => {

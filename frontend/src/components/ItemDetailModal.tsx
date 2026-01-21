@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiEdit2, FiTrash2, FiClock, FiUser, FiChevronRight } from 'react-icons/fi';
+import { FiX, FiEdit2, FiTrash2, FiClock, FiUser, FiChevronRight, FiGithub, FiGlobe, FiExternalLink } from 'react-icons/fi';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { itemsApi } from '../api/items';
 import { useAuthStore } from '../store/authStore';
@@ -74,6 +74,9 @@ const groupBySection = (items: { label: string; value: string; section: string }
 export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
+  const [showUrlEditModal, setShowUrlEditModal] = useState(false);
+  const [editGitUrl, setEditGitUrl] = useState('');
+  const [editWebUrl, setEditWebUrl] = useState('');
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
 
@@ -104,6 +107,32 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
       onClose();
     },
   });
+
+  const urlMutation = useMutation({
+    mutationFn: ({ gitUrl, webUrl }: { gitUrl?: string; webUrl?: string }) =>
+      itemsApi.updateUrls(itemId!, { gitUrl: gitUrl || null, webUrl: webUrl || null }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['item', itemId] });
+      toast.success('URL이 저장되었습니다');
+      setShowUrlEditModal(false);
+    },
+    onError: () => {
+      toast.error('URL 저장에 실패했습니다');
+    },
+  });
+
+  const handleOpenUrlEdit = () => {
+    setEditGitUrl(item?.gitUrl || '');
+    setEditWebUrl(item?.webUrl || '');
+    setShowUrlEditModal(true);
+  };
+
+  const handleSaveUrls = () => {
+    urlMutation.mutate({
+      gitUrl: editGitUrl.trim() || undefined,
+      webUrl: editWebUrl.trim() || undefined,
+    });
+  };
 
   // 권한 체크
   const canEdit = () => {
@@ -188,8 +217,73 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
 
                 {/* 컨텐츠 */}
                 <div className="p-6 space-y-6">
-                  {/* 제목/설명 */}
+                  {/* 제목 */}
                   <h1 className="text-2xl font-bold text-gray-800">{item.title}</h1>
+                  
+                  {/* 프로젝트 링크 */}
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="flex items-center justify-between bg-gray-50 px-4 py-2 border-b border-gray-200">
+                      <h3 className="text-sm font-bold text-gray-700">🔗 프로젝트 링크</h3>
+                      {canEdit() && (
+                        <button
+                          onClick={handleOpenUrlEdit}
+                          className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                        >
+                          수정
+                        </button>
+                      )}
+                    </div>
+                    <table className="w-full text-sm">
+                      <tbody>
+                        <tr className="border-b border-gray-100">
+                          <td className="px-4 py-3 bg-gray-50 w-24 font-medium text-gray-600">
+                            <div className="flex items-center gap-2">
+                              <FiGithub size={14} />
+                              Git
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            {item.gitUrl ? (
+                              <a
+                                href={item.gitUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary-600 hover:text-primary-700 hover:underline flex items-center gap-1"
+                              >
+                                {item.gitUrl}
+                                <FiExternalLink size={12} />
+                              </a>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-3 bg-gray-50 w-24 font-medium text-gray-600">
+                            <div className="flex items-center gap-2">
+                              <FiGlobe size={14} />
+                              Web
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            {item.webUrl ? (
+                              <a
+                                href={item.webUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary-600 hover:text-primary-700 hover:underline flex items-center gap-1"
+                              >
+                                {item.webUrl}
+                                <FiExternalLink size={12} />
+                              </a>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                       {item.description && (() => {
                         const parsed = parseDescription(item.description);
                         const grouped = groupBySection(parsed);
@@ -338,6 +432,79 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
             onClose={() => setShowEditModal(false)}
             item={item}
           />
+
+          {/* URL 수정 모달 */}
+          <AnimatePresence>
+            {showUrlEditModal && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setShowUrlEditModal(false)}
+                  className="fixed inset-0 bg-black/50 z-[60]"
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl z-[60] p-6"
+                >
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">🔗 프로젝트 링크 수정</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">
+                        <div className="flex items-center gap-2">
+                          <FiGithub size={14} />
+                          Git 주소
+                        </div>
+                      </label>
+                      <input
+                        type="url"
+                        value={editGitUrl}
+                        onChange={(e) => setEditGitUrl(e.target.value)}
+                        placeholder="https://github.com/..."
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">
+                        <div className="flex items-center gap-2">
+                          <FiGlobe size={14} />
+                          Web 주소
+                        </div>
+                      </label>
+                      <input
+                        type="url"
+                        value={editWebUrl}
+                        onChange={(e) => setEditWebUrl(e.target.value)}
+                        placeholder="https://..."
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end gap-3 mt-6">
+                    <button
+                      onClick={() => setShowUrlEditModal(false)}
+                      className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      취소
+                    </button>
+                    <button
+                      onClick={handleSaveUrls}
+                      disabled={urlMutation.isPending}
+                      className="px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
+                    >
+                      {urlMutation.isPending ? '저장 중...' : '저장'}
+                    </button>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </>
       )}
     </AnimatePresence>

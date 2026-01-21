@@ -23,6 +23,8 @@ interface UpdateItemData {
   title?: string;
   description?: string;
   assignedTo?: string;
+  gitUrl?: string;
+  webUrl?: string;
 }
 
 export class ItemService {
@@ -136,6 +138,8 @@ export class ItemService {
       id: item.id,
       title: item.title,
       description: item.description,
+      gitUrl: item.gitUrl,
+      webUrl: item.webUrl,
       status: item.status,
       statusIcon: statusInfo.icon,
       statusLabel: statusInfo.label,
@@ -211,12 +215,16 @@ export class ItemService {
         title: data.title,
         description: data.description,
         assignedTo: data.assignedTo,
+        gitUrl: data.gitUrl,
+        webUrl: data.webUrl,
       },
     });
 
     return {
       id: updated.id,
       title: updated.title,
+      gitUrl: updated.gitUrl,
+      webUrl: updated.webUrl,
       updatedAt: updated.updatedAt,
     };
   }
@@ -276,6 +284,34 @@ export class ItemService {
       where: { id },
       data: { isDeleted: true },
     });
+  }
+
+  async updateUrls(id: string, gitUrl: string | undefined, webUrl: string | undefined, user: JwtPayload) {
+    const item = await prisma.improvementItem.findFirst({
+      where: { id, isDeleted: false },
+    });
+
+    if (!item) {
+      throw new AppError(404, 'NOT_FOUND', '항목을 찾을 수 없습니다');
+    }
+
+    // 권한 체크
+    this.checkPermission(item, user);
+
+    const updated = await prisma.improvementItem.update({
+      where: { id },
+      data: {
+        gitUrl: gitUrl ?? null,
+        webUrl: webUrl ?? null,
+      },
+    });
+
+    return {
+      id: updated.id,
+      gitUrl: updated.gitUrl,
+      webUrl: updated.webUrl,
+      updatedAt: updated.updatedAt,
+    };
   }
 
   private checkPermission(item: { createdBy: string; departmentId: string }, user: JwtPayload) {

@@ -137,6 +137,34 @@ router.patch(
   }
 );
 
+// PATCH /api/v1/items/:id/urls
+router.patch(
+  '/:id/urls',
+  authorize(UserRole.EMPLOYEE, UserRole.DEPT_MANAGER, UserRole.ADMIN),
+  validate([
+    param('id').isUUID(),
+    body('gitUrl').optional({ nullable: true }).isString(),
+    body('webUrl').optional({ nullable: true }).isString(),
+  ]),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { gitUrl, webUrl } = req.body;
+      const result = await itemService.updateUrls(req.params.id, gitUrl, webUrl, req.user!);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      if (error instanceof Error && 'statusCode' in error) {
+        const appError = error as { statusCode: number; code: string; message: string };
+        res.status(appError.statusCode).json({
+          success: false,
+          error: { code: appError.code, message: appError.message },
+        });
+        return;
+      }
+      throw error;
+    }
+  }
+);
+
 // DELETE /api/v1/items/:id
 router.delete(
   '/:id',

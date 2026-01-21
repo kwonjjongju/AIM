@@ -51,6 +51,8 @@ export interface ImprovementItem {
 
 // 항목 상세
 export interface ImprovementItemDetail extends ImprovementItem {
+  gitUrl?: string | null;
+  webUrl?: string | null;
   relatedDepartments: Department[];
   attachments: {
     id: string;

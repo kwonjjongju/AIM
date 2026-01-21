@@ -50,6 +50,8 @@ model ImprovementItem {
   id           String   @id @default(uuid())
   title        String
   description  String?
+  gitUrl       String?  @map("git_url")
+  webUrl       String?  @map("web_url")
   departmentId String   @map("department_id")
   status       String   @default("IDEA") // IDEA, REVIEWING, IN_PROGRESS, ON_HOLD, DONE
   createdBy    String   @map("created_by")
