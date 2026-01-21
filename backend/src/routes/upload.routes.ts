@@ -31,11 +31,13 @@ router.post(
   authenticate,
   authorize('ADMIN', 'DEPT_MANAGER'),
   upload.single('file'),
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, _next: NextFunction) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: '파일이 필요합니다.' });
       }
+      
+      console.log('업로드된 파일:', req.file.originalname, req.file.size, 'bytes');
       
       const result = await uploadService.processExcelFile(
         req.file.buffer,
@@ -51,8 +53,26 @@ router.post(
         totalItems: result.preview?.length || 0,
         errors: result.errors,
       });
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      console.error('엑셀 미리보기 에러:', error);
+      
+      // 암호화된 파일 에러
+      if (error.message?.includes('Encrypted') || error.message?.includes('ECMA-376')) {
+        return res.status(400).json({ 
+          error: '암호화된 엑셀 파일은 업로드할 수 없습니다. 암호를 해제한 후 다시 시도해주세요.' 
+        });
+      }
+      
+      // 파일 형식 에러
+      if (error.message?.includes('CFB') || error.message?.includes('parse')) {
+        return res.status(400).json({ 
+          error: '올바른 엑셀 파일 형식이 아닙니다. .xlsx 형식으로 저장 후 다시 시도해주세요.' 
+        });
+      }
+      
+      return res.status(500).json({ 
+        error: `파일 처리 중 오류: ${error.message}` 
+      });
     }
   }
 );
@@ -63,11 +83,13 @@ router.post(
   authenticate,
   authorize('ADMIN', 'DEPT_MANAGER'),
   upload.single('file'),
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, _next: NextFunction) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: '파일이 필요합니다.' });
       }
+      
+      console.log('업로드 실행:', req.file.originalname);
       
       const targetSheets = req.body.sheets 
         ? JSON.parse(req.body.sheets) as string[]
@@ -86,8 +108,18 @@ router.post(
         skipped: result.skipped,
         errors: result.errors,
       });
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      console.error('엑셀 업로드 에러:', error);
+      
+      if (error.message?.includes('Encrypted') || error.message?.includes('ECMA-376')) {
+        return res.status(400).json({ 
+          error: '암호화된 엑셀 파일은 업로드할 수 없습니다.' 
+        });
+      }
+      
+      return res.status(500).json({ 
+        error: `업로드 처리 중 오류: ${error.message}` 
+      });
     }
   }
 );
