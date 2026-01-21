@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { itemsApi } from '../api/items';
 import { useAuthStore } from '../store/authStore';
 import StatusBadge from './StatusBadge';
+import EditItemModal from './EditItemModal';
 import { STATUS_CONFIG, type ItemStatus } from '../types';
 import toast from 'react-hot-toast';
 
@@ -13,10 +14,65 @@ interface ItemDetailModalProps {
   onClose: () => void;
 }
 
+// 설명 파싱 함수 - [라벨] 값 형태를 구조화
+const parseDescription = (description: string | undefined) => {
+  if (!description) return [];
+  
+  const sections: { label: string; value: string; section: string }[] = [];
+  const lines = description.split('\n');
+  
+  // 섹션 매핑
+  const sectionMap: Record<string, string> = {
+    '업무내용': '① 기본 정보',
+    '현재방식': '② 현황 & 문제점',
+    '소요시간': '② 현황 & 문제점',
+    '참여인원': '② 현황 & 문제점',
+    '문제점': '② 현황 & 문제점',
+    '개선사유': '② 현황 & 문제점',
+    '개발목적': '③ 개발 목적 & 기대효과',
+    '기대효과(정량)': '③ 개발 목적 & 기대효과',
+    '기대효과(정성)': '③ 개발 목적 & 기대효과',
+    '자동화수준': '③ 개발 목적 & 기대효과',
+    '입력데이터': '④ 입력/출력 데이터',
+    '출력데이터': '④ 입력/출력 데이터',
+    '구현방식': '⑤ 기술/구현 방식',
+    '핵심기술': '⑤ 기술/구현 방식',
+    '배포환경': '⑥ 인프라/운영 환경',
+    '디바이스': '⑥ 인프라/운영 환경',
+    '사용자': '⑦ 사용자 & 확장성',
+    '사용범위': '⑦ 사용자 & 확장성',
+    '중요도': '⑧ 우선순위 & 제약사항',
+    '희망완료': '⑧ 우선순위 & 제약사항',
+    '기타': '⑧ 우선순위 & 제약사항',
+  };
+  
+  lines.forEach(line => {
+    const match = line.match(/^\[(.+?)\]\s*(.+)$/);
+    if (match) {
+      const label = match[1];
+      const value = match[2];
+      const section = sectionMap[label] || '기타 정보';
+      sections.push({ label, value, section });
+    }
+  });
+  
+  return sections;
+};
+
+// 섹션별로 그룹화
+const groupBySection = (items: { label: string; value: string; section: string }[]) => {
+  const groups: Record<string, { label: string; value: string }[]> = {};
+  items.forEach(item => {
+    if (!groups[item.section]) {
+      groups[item.section] = [];
+    }
+    groups[item.section].push({ label: item.label, value: item.value });
+  });
+  return groups;
+};
+
 export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
@@ -25,17 +81,6 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
     queryKey: ['item', itemId],
     queryFn: () => itemsApi.getItem(itemId!),
     enabled: !!itemId,
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ title, description }: { title: string; description?: string }) =>
-      itemsApi.updateItem(itemId!, { title, description }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['item', itemId] });
-      queryClient.invalidateQueries({ queryKey: ['items'] });
-      toast.success('수정되었습니다');
-      setIsEditing(false);
-    },
   });
 
   const statusMutation = useMutation({
@@ -71,22 +116,7 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
   };
 
   const handleEdit = () => {
-    if (item) {
-      setEditTitle(item.title);
-      setEditDescription(item.description || '');
-      setIsEditing(true);
-    }
-  };
-
-  const handleSave = () => {
-    if (!editTitle.trim()) {
-      toast.error('제목을 입력해주세요');
-      return;
-    }
-    updateMutation.mutate({
-      title: editTitle.trim(),
-      description: editDescription.trim() || undefined,
-    });
+    setShowEditModal(true);
   };
 
   const handleDelete = () => {
@@ -159,38 +189,58 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
                 {/* 컨텐츠 */}
                 <div className="p-6 space-y-6">
                   {/* 제목/설명 */}
-                  {isEditing ? (
-                    <div className="space-y-4">
-                      <input
-                        type="text"
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        className="input text-xl font-bold"
-                        maxLength={100}
-                      />
-                      <textarea
-                        value={editDescription}
-                        onChange={(e) => setEditDescription(e.target.value)}
-                        className="input min-h-[120px]"
-                        placeholder="설명을 입력하세요..."
-                      />
-                      <div className="flex justify-end gap-2">
-                        <button onClick={() => setIsEditing(false)} className="btn-secondary">
-                          취소
-                        </button>
-                        <button onClick={handleSave} className="btn-primary">
-                          저장
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <h1 className="text-2xl font-bold text-gray-800">{item.title}</h1>
-                      {item.description && (
-                        <p className="text-gray-600 whitespace-pre-wrap">{item.description}</p>
-                      )}
-                    </>
-                  )}
+                  <h1 className="text-2xl font-bold text-gray-800">{item.title}</h1>
+                      {item.description && (() => {
+                        const parsed = parseDescription(item.description);
+                        const grouped = groupBySection(parsed);
+                        const sectionOrder = [
+                          '① 기본 정보',
+                          '② 현황 & 문제점',
+                          '③ 개발 목적 & 기대효과',
+                          '④ 입력/출력 데이터',
+                          '⑤ 기술/구현 방식',
+                          '⑥ 인프라/운영 환경',
+                          '⑦ 사용자 & 확장성',
+                          '⑧ 우선순위 & 제약사항',
+                          '기타 정보',
+                        ];
+                        
+                        if (parsed.length === 0) {
+                          // 구조화된 데이터가 없으면 원본 텍스트 표시
+                          return <p className="text-gray-600 whitespace-pre-wrap">{item.description}</p>;
+                        }
+                        
+                        return (
+                          <div className="space-y-4 mt-4">
+                            {sectionOrder.map(sectionName => {
+                              const items = grouped[sectionName];
+                              if (!items || items.length === 0) return null;
+                              
+                              return (
+                                <div key={sectionName} className="border border-gray-200">
+                                  {/* 섹션 헤더 */}
+                                  <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                                    <h3 className="text-sm font-bold text-gray-700">{sectionName}</h3>
+                                  </div>
+                                  {/* 필드 목록 */}
+                                  <div className="divide-y divide-gray-100">
+                                    {items.map((field, idx) => (
+                                      <div key={idx} className="grid grid-cols-3 gap-4 px-4 py-3">
+                                        <div className="text-sm font-medium text-gray-500">
+                                          {field.label}
+                                        </div>
+                                        <div className="col-span-2 text-sm text-gray-800">
+                                          {field.value}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
 
                   {/* 정보 */}
                   <div className="grid grid-cols-2 gap-4 py-4 border-y border-gray-100">
@@ -281,6 +331,13 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
               </>
             ) : null}
           </motion.div>
+
+          {/* 수정 모달 */}
+          <EditItemModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            item={item}
+          />
         </>
       )}
     </AnimatePresence>
