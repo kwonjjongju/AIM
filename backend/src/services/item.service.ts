@@ -280,10 +280,25 @@ export class ItemService {
     // 권한 체크
     this.checkPermission(item, user);
 
-    await prisma.improvementItem.update({
-      where: { id },
-      data: { isDeleted: true },
-    });
+    // 관련 데이터와 함께 실제 삭제 (트랜잭션 사용)
+    await prisma.$transaction([
+      // 상태 이력 삭제
+      prisma.statusHistory.deleteMany({
+        where: { itemId: id },
+      }),
+      // 첨부파일 삭제
+      prisma.attachment.deleteMany({
+        where: { itemId: id },
+      }),
+      // 연관 부서 삭제
+      prisma.itemRelatedDepartment.deleteMany({
+        where: { itemId: id },
+      }),
+      // 아이템 삭제
+      prisma.improvementItem.delete({
+        where: { id },
+      }),
+    ]);
   }
 
   async updateUrls(id: string, gitUrl: string | undefined, webUrl: string | undefined, user: JwtPayload) {
