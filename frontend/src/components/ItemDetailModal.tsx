@@ -249,16 +249,15 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
                               <span className="text-gray-400">-</span>
                             )}
                           </td>
-                          <td className="px-2 py-3 w-16">
+                          <td className="px-3 py-3 text-right">
                             {item.gitUrl && (
                               <a
                                 href={item.gitUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-700 text-white rounded hover:bg-gray-800 transition-colors"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-700 text-white rounded hover:bg-gray-800 transition-colors whitespace-nowrap"
                               >
-                                이동
-                                <FiExternalLink size={10} />
+                                이동 <FiExternalLink size={12} />
                               </a>
                             )}
                           </td>
@@ -277,16 +276,15 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
                               <span className="text-gray-400">-</span>
                             )}
                           </td>
-                          <td className="px-2 py-3 w-16">
+                          <td className="px-3 py-3 text-right">
                             {item.webUrl && (
                               <a
                                 href={item.webUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors whitespace-nowrap"
                               >
-                                이동
-                                <FiExternalLink size={10} />
+                                이동 <FiExternalLink size={12} />
                               </a>
                             )}
                           </td>
