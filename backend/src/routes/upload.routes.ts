@@ -41,7 +41,7 @@ router.post(
       
       const result = await uploadService.processExcelFile(
         req.file.buffer,
-        req.user!.id,
+        req.user!.userId,
         { preview: true }
       );
       
@@ -97,7 +97,7 @@ router.post(
       
       const result = await uploadService.processExcelFile(
         req.file.buffer,
-        req.user!.id,
+        req.user!.userId,
         { preview: false, targetSheets }
       );
       
