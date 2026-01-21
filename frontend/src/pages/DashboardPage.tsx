@@ -69,15 +69,19 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               onClick={() => navigate('/board')}
-              className="card bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
+              className="card !rounded-none cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
+              style={{
+                background: 'linear-gradient(to bottom right, #E8F4FC, #D1E9F6)',
+                border: '1px solid #B8D4E8',
+              }}
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-200 rounded-lg">
-                  <FiList className="text-amber-700" size={20} />
+                <div className="p-2" style={{ backgroundColor: '#C5DEF0' }}>
+                  <FiList style={{ color: '#0F4C81' }} size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-amber-600 font-medium">전체</p>
-                  <p className="text-2xl font-bold text-amber-800">{summary?.total || 0}</p>
+                  <p className="text-xs font-medium" style={{ color: '#3D7AB5' }}>전체</p>
+                  <p className="text-2xl font-bold" style={{ color: '#0F4C81' }}>{summary?.total || 0}</p>
                 </div>
               </div>
             </motion.div>
@@ -87,10 +91,10 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               onClick={() => navigate('/board?status=DONE')}
-              className="card bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
+              className="card !rounded-none bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-teal-200 rounded-lg">
+                <div className="p-2 bg-teal-200">
                   <FiCheckCircle className="text-teal-700" size={20} />
                 </div>
                 <div>
@@ -107,10 +111,10 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               onClick={() => navigate('/board?status=ON_HOLD')}
-              className="card bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
+              className="card !rounded-none bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-200 rounded-lg">
+                <div className="p-2 bg-gray-200">
                   <FiPauseCircle className="text-gray-600" size={20} />
                 </div>
                 <div>
@@ -127,10 +131,10 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               onClick={() => navigate('/board?stale=true')}
-              className="card bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
+              className="card !rounded-none bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-200 rounded-lg">
+                <div className="p-2 bg-orange-200">
                   <FiClock className="text-orange-700" size={20} />
                 </div>
                 <div>
@@ -150,62 +154,62 @@ export default function DashboardPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="card"
+        className="card !rounded-none"
       >
         <h2 className="font-semibold text-gray-700 mb-2 text-lg">2026년 본부별 개선 검토 건 수</h2>
         <p className="text-xs text-gray-400 mb-4">클릭하면 해당 본부 보드로 이동</p>
         {summaryLoading ? (
-          <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />
+          <div className="h-64 bg-gray-100 animate-pulse" />
         ) : (
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${summary?.byDepartment.length || 8}, 1fr)` }}>
-            {summary?.byDepartment.map((dept) => {
-              const maxCount = Math.max(...(summary?.byDepartment.map(d => d.count) || [1]));
-              const heightPercent = maxCount > 0 ? (dept.count / maxCount) * 100 : 0;
-              const minHeight = 40;
-              const maxHeight = 140;
-              const barHeight = Math.max(minHeight, (heightPercent / 100) * maxHeight);
-              
-              return (
-                <button
-                  key={dept.id}
-                  onClick={() => navigate(`/board?dept=${dept.id}`)}
-                  className="flex flex-col items-center group cursor-pointer transition-transform hover:scale-105"
-                >
-                  {/* 건수 */}
-                  <span
-                    className="text-base font-bold mb-1"
-                    style={{ color: dept.color }}
+          <div className="relative">
+            {/* 가로줄 눈금 배경 */}
+            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none" style={{ top: '28px', bottom: '44px' }}>
+              {[0, 1, 2, 3, 4].map((i) => (
+                <div key={i} className="w-full border-t border-gray-200" />
+              ))}
+            </div>
+            {/* 막대 그래프 */}
+            <div className="relative grid gap-2" style={{ gridTemplateColumns: `repeat(${summary?.byDepartment.length || 8}, 1fr)` }}>
+              {summary?.byDepartment.map((dept) => {
+                const maxCount = Math.max(...(summary?.byDepartment.map(d => d.count) || [1]));
+                const heightPercent = maxCount > 0 ? (dept.count / maxCount) * 100 : 0;
+                const minHeight = 40;
+                const maxHeight = 140;
+                const barHeight = Math.max(minHeight, (heightPercent / 100) * maxHeight);
+                const barColor = '#5A87BB'; // 스카이 블루
+                
+                return (
+                  <button
+                    key={dept.id}
+                    onClick={() => navigate(`/board?dept=${dept.id}`)}
+                    className="flex flex-col items-center group cursor-pointer transition-transform hover:scale-105"
                   >
-                    {dept.count}
-                  </span>
-                  {/* 막대 컨테이너 (고정 높이) */}
-                  <div 
-                    className="flex items-end justify-center w-full"
-                    style={{ height: `${maxHeight}px` }}
-                  >
-                    {/* 막대 */}
-                    <div
-                      className="w-full max-w-[60px] rounded-t-lg transition-all group-hover:shadow-lg"
-                      style={{
-                        height: `${barHeight}px`,
-                        backgroundColor: dept.color,
-                      }}
-                    />
-                  </div>
-                  {/* 본부 이름 (도형으로 감싸기) */}
-                  <div
-                    className="mt-2 px-2 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all group-hover:shadow-md"
-                    style={{
-                      backgroundColor: `${dept.color}20`,
-                      color: dept.color,
-                      border: `2px solid ${dept.color}`,
-                    }}
-                  >
-                    {dept.name}
-                  </div>
-                </button>
-              );
-            })}
+                    {/* 건수 */}
+                    <span className="text-base font-bold mb-1 text-gray-800">
+                      {dept.count}
+                    </span>
+                    {/* 막대 컨테이너 (고정 높이) */}
+                    <div 
+                      className="flex items-end justify-center w-full"
+                      style={{ height: `${maxHeight}px` }}
+                    >
+                      {/* 막대 */}
+                      <div
+                        className="w-full max-w-[60px] rounded-t-lg transition-all group-hover:shadow-lg"
+                        style={{
+                          height: `${barHeight}px`,
+                          backgroundColor: barColor,
+                        }}
+                      />
+                    </div>
+                    {/* 본부 이름 */}
+                    <span className="mt-3 text-base font-bold text-gray-800 whitespace-nowrap">
+                      {dept.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
       </motion.div>
@@ -216,7 +220,7 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="card py-3"
+          className="card !rounded-none py-3"
         >
           <div className="flex items-center justify-between">
             <h2 className="font-medium text-gray-700 text-sm">

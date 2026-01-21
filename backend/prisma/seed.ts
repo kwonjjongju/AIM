@@ -30,62 +30,62 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.department.deleteMany();
 
-  // 8개 본부 생성
+  // 8개 본부 생성 (통일 색상: #0F4C81 네이비 블루)
   const departments = await Promise.all([
     prisma.department.create({
       data: {
         name: '관리본부',
         code: 'MGMT',
-        color: '#8B5CF6',
+        color: '#0F4C81',
       },
     }),
     prisma.department.create({
       data: {
         name: '연구본부',
         code: 'RND',
-        color: '#3B82F6',
+        color: '#0F4C81',
       },
     }),
     prisma.department.create({
       data: {
         name: '생산기술본부',
         code: 'PTECH',
-        color: '#06B6D4',
+        color: '#0F4C81',
       },
     }),
     prisma.department.create({
       data: {
         name: '생산본부',
         code: 'PROD',
-        color: '#F59E0B',
+        color: '#0F4C81',
       },
     }),
     prisma.department.create({
       data: {
         name: '구매본부',
         code: 'PURCH',
-        color: '#10B981',
+        color: '#0F4C81',
       },
     }),
     prisma.department.create({
       data: {
         name: '전자부품사업본부',
         code: 'ELEC',
-        color: '#EC4899',
+        color: '#0F4C81',
       },
     }),
     prisma.department.create({
       data: {
         name: '영업본부',
         code: 'SALES',
-        color: '#EF4444',
+        color: '#0F4C81',
       },
     }),
     prisma.department.create({
       data: {
         name: '품질본부',
         code: 'QA',
-        color: '#14B8A6',
+        color: '#0F4C81',
       },
     }),
   ]);

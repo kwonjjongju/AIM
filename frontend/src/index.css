@@ -71,12 +71,12 @@ body {
   color: #92400E;
 }
 .status-reviewing { 
-  background-color: #DBEAFE; 
-  color: #1E40AF;
+  background-color: #F3E8FF; 
+  color: #7C3AED;
 }
 .status-in-progress { 
-  background-color: #D1FAE5; 
-  color: #065F46;
+  background-color: #DBEAFE; 
+  color: #1E40AF;
 }
 .status-on-hold { 
   background-color: #F3F4F6; 

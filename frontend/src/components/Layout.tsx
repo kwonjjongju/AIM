@@ -89,7 +89,7 @@ export default function Layout() {
           id: `board-dept-${dept.id}`,
           label: dept.name,
           path: `/board?dept=${dept.id}`,
-          icon: <FiCircle size={12} style={{ color: dept.color, fill: dept.color }} />,
+          icon: <FiFolder size={16} />,
           color: dept.color,
         })),
       ];
