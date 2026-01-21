@@ -110,76 +110,82 @@ const parseDescriptionToFormData = (description: string | undefined): Partial<Fo
   const result: Partial<FormData> = {};
   const lines = description.split('\n');
   
+  // 단순 1:1 매핑 필드
   const fieldMap: Record<string, keyof FormData> = {
     '업무내용': 'taskDescription',
-    '현재방식': 'currentMethod',
+    '업무분류': 'taskCategory',
+    '업무빈도': 'taskFrequency',
     '소요시간': 'currentDuration',
-    '참여인원': 'participantCount',
     '문제점': 'mainProblem',
     '개선사유': 'improvementReason',
     '개발목적': 'developmentPurpose',
     '기대효과(정량)': 'expectedEffectQuantitative',
     '기대효과(정성)': 'expectedEffectQualitative',
     '자동화수준': 'automationLevel',
-    '입력데이터': 'inputDataSource',
-    '출력데이터': 'outputDataFormat',
+    '입력빈도': 'inputDataFrequency',
     '구현방식': 'preferredImplementation',
+    '웹기반': 'webBased',
     '핵심기술': 'coreEngine',
     '배포환경': 'deploymentEnvironment',
     '디바이스': 'targetDevice',
-    '사용자': 'primaryUserRole',
+    '보안수준': 'securityLevel',
     '사용범위': 'usageScope',
+    '부서간확장': 'crossDepartmentPossibility',
     '중요도': 'importance',
     '희망완료': 'targetCompletionDate',
     '기타': 'otherConstraints',
   };
   
   lines.forEach(line => {
-    const match = line.match(/^\[(.+?)\]\s*(.+)$/);
+    const match = line.match(/^\[(.+?)\]\s*(.*)$/);
     if (match) {
       const label = match[1];
-      let value = match[2];
+      let value = match[2]?.trim() || '';
       
       // 현재방식에서 상세 정보 분리
       if (label === '현재방식') {
         const detailMatch = value.match(/^(.+?)\s*\((.+)\)$/);
         if (detailMatch) {
-          result.currentMethod = detailMatch[1];
-          result.currentMethodDetail = detailMatch[2];
+          result.currentMethod = detailMatch[1].trim();
+          result.currentMethodDetail = detailMatch[2].trim();
         } else {
           result.currentMethod = value;
         }
       }
       // 참여인원에서 '명' 제거
       else if (label === '참여인원') {
-        result.participantCount = value.replace('명', '');
+        result.participantCount = value.replace('명', '').trim();
       }
       // 사용자에서 인원수 분리
       else if (label === '사용자') {
         const userMatch = value.match(/^(.+?)\s*\((\d+)명\)$/);
         if (userMatch) {
-          result.primaryUserRole = userMatch[1];
+          result.primaryUserRole = userMatch[1].trim();
           result.expectedUserCount = userMatch[2];
-        } else {
+        } else if (value !== '-') {
           result.primaryUserRole = value;
         }
       }
       // 입력데이터에서 형식 분리
       else if (label === '입력데이터') {
         const parts = value.split(' / ');
-        result.inputDataSource = parts[0] || '';
-        result.inputDataFormat = parts[1] || '';
+        result.inputDataSource = parts[0]?.trim() !== '-' ? parts[0]?.trim() : '';
+        result.inputDataFormat = parts[1]?.trim() !== '-' ? parts[1]?.trim() : '';
       }
       // 출력데이터에서 사용처 분리
       else if (label === '출력데이터') {
         const parts = value.split(' → ');
-        result.outputDataFormat = parts[0] || '';
-        result.outputDataUsage = parts[1] || '';
+        result.outputDataFormat = parts[0]?.trim() !== '-' ? parts[0]?.trim() : '';
+        result.outputDataUsage = parts[1]?.trim() || '';
+      }
+      // GUI필요
+      else if (label === 'GUI필요') {
+        result.guiRequired = value === '필요' ? 'Y' : 'N';
       }
       // 일반 필드
       else {
         const fieldKey = fieldMap[label];
-        if (fieldKey) {
+        if (fieldKey && value && value !== '-') {
           result[fieldKey] = value;
         }
       }
@@ -256,27 +262,58 @@ export default function EditItemModal({ isOpen, onClose, item }: EditItemModalPr
       return;
     }
 
-    // 상세 설명 조합
-    const descriptionParts = [];
+    // 상세 설명 조합 - 모든 필드 포함
+    const descriptionParts: string[] = [];
     
+    // ① 기본 정보
     if (formData.taskDescription) descriptionParts.push(`[업무내용] ${formData.taskDescription}`);
-    if (formData.currentMethod) descriptionParts.push(`[현재방식] ${formData.currentMethod}${formData.currentMethodDetail ? ` (${formData.currentMethodDetail})` : ''}`);
+    if (formData.taskCategory) descriptionParts.push(`[업무분류] ${formData.taskCategory}`);
+    if (formData.taskFrequency) descriptionParts.push(`[업무빈도] ${formData.taskFrequency}`);
+    
+    // ② 현황 & 문제점
+    if (formData.currentMethod || formData.currentMethodDetail) {
+      const methodPart = formData.currentMethod || '기타';
+      descriptionParts.push(`[현재방식] ${methodPart}${formData.currentMethodDetail ? ` (${formData.currentMethodDetail})` : ''}`);
+    }
     if (formData.currentDuration) descriptionParts.push(`[소요시간] ${formData.currentDuration}`);
     if (formData.participantCount) descriptionParts.push(`[참여인원] ${formData.participantCount}명`);
     if (formData.mainProblem) descriptionParts.push(`[문제점] ${formData.mainProblem}`);
     if (formData.improvementReason) descriptionParts.push(`[개선사유] ${formData.improvementReason}`);
+    
+    // ③ 개발 목적 & 기대효과
     if (formData.developmentPurpose) descriptionParts.push(`[개발목적] ${formData.developmentPurpose}`);
     if (formData.expectedEffectQuantitative) descriptionParts.push(`[기대효과(정량)] ${formData.expectedEffectQuantitative}`);
     if (formData.expectedEffectQualitative) descriptionParts.push(`[기대효과(정성)] ${formData.expectedEffectQualitative}`);
     if (formData.automationLevel) descriptionParts.push(`[자동화수준] ${formData.automationLevel}`);
-    if (formData.inputDataSource) descriptionParts.push(`[입력데이터] ${formData.inputDataSource} / ${formData.inputDataFormat || '-'}`);
-    if (formData.outputDataFormat) descriptionParts.push(`[출력데이터] ${formData.outputDataFormat}${formData.outputDataUsage ? ` → ${formData.outputDataUsage}` : ''}`);
+    
+    // ④ 입력/출력 데이터
+    if (formData.inputDataSource || formData.inputDataFormat) {
+      descriptionParts.push(`[입력데이터] ${formData.inputDataSource || '-'} / ${formData.inputDataFormat || '-'}`);
+    }
+    if (formData.inputDataFrequency) descriptionParts.push(`[입력빈도] ${formData.inputDataFrequency}`);
+    if (formData.outputDataFormat || formData.outputDataUsage) {
+      descriptionParts.push(`[출력데이터] ${formData.outputDataFormat || '-'}${formData.outputDataUsage ? ` → ${formData.outputDataUsage}` : ''}`);
+    }
+    
+    // ⑤ 기술/구현 방식
     if (formData.preferredImplementation) descriptionParts.push(`[구현방식] ${formData.preferredImplementation}`);
+    if (formData.guiRequired) descriptionParts.push(`[GUI필요] ${formData.guiRequired === 'Y' ? '필요' : '불필요'}`);
+    if (formData.webBased) descriptionParts.push(`[웹기반] ${formData.webBased}`);
     if (formData.coreEngine) descriptionParts.push(`[핵심기술] ${formData.coreEngine}`);
+    
+    // ⑥ 인프라/운영 환경
     if (formData.deploymentEnvironment) descriptionParts.push(`[배포환경] ${formData.deploymentEnvironment}`);
     if (formData.targetDevice) descriptionParts.push(`[디바이스] ${formData.targetDevice}`);
-    if (formData.primaryUserRole) descriptionParts.push(`[사용자] ${formData.primaryUserRole} ${formData.expectedUserCount ? `(${formData.expectedUserCount}명)` : ''}`);
+    if (formData.securityLevel) descriptionParts.push(`[보안수준] ${formData.securityLevel}`);
+    
+    // ⑦ 사용자 & 확장성
+    if (formData.primaryUserRole || formData.expectedUserCount) {
+      descriptionParts.push(`[사용자] ${formData.primaryUserRole || '-'}${formData.expectedUserCount ? ` (${formData.expectedUserCount}명)` : ''}`);
+    }
     if (formData.usageScope) descriptionParts.push(`[사용범위] ${formData.usageScope}`);
+    if (formData.crossDepartmentPossibility) descriptionParts.push(`[부서간확장] ${formData.crossDepartmentPossibility}`);
+    
+    // ⑧ 우선순위 & 제약사항
     if (formData.importance) descriptionParts.push(`[중요도] ${formData.importance}`);
     if (formData.targetCompletionDate) descriptionParts.push(`[희망완료] ${formData.targetCompletionDate}`);
     if (formData.otherConstraints) descriptionParts.push(`[기타] ${formData.otherConstraints}`);
