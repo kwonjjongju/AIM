@@ -227,57 +227,67 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
                       {canEdit() && (
                         <button
                           onClick={handleOpenUrlEdit}
-                          className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                          className="text-xs text-blue-600 hover:text-blue-700 font-medium"
                         >
-                          수정
+                          입력
                         </button>
                       )}
                     </div>
                     <table className="w-full text-sm">
                       <tbody>
                         <tr className="border-b border-gray-100">
-                          <td className="px-4 py-3 bg-gray-50 w-24 font-medium text-gray-600">
+                          <td className="px-4 py-3 bg-gray-50 w-20 font-medium text-gray-600">
                             <div className="flex items-center gap-2">
                               <FiGithub size={14} />
                               Git
                             </div>
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 flex-1">
                             {item.gitUrl ? (
-                              <a
-                                href={item.gitUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary-600 hover:text-primary-700 hover:underline flex items-center gap-1"
-                              >
-                                {item.gitUrl}
-                                <FiExternalLink size={12} />
-                              </a>
+                              <span className="text-gray-700 text-xs break-all">{item.gitUrl}</span>
                             ) : (
                               <span className="text-gray-400">-</span>
                             )}
                           </td>
+                          <td className="px-2 py-3 w-16">
+                            {item.gitUrl && (
+                              <a
+                                href={item.gitUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-700 text-white rounded hover:bg-gray-800 transition-colors"
+                              >
+                                이동
+                                <FiExternalLink size={10} />
+                              </a>
+                            )}
+                          </td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-3 bg-gray-50 w-24 font-medium text-gray-600">
+                          <td className="px-4 py-3 bg-gray-50 w-20 font-medium text-gray-600">
                             <div className="flex items-center gap-2">
                               <FiGlobe size={14} />
                               Web
                             </div>
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 flex-1">
                             {item.webUrl ? (
+                              <span className="text-gray-700 text-xs break-all">{item.webUrl}</span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-2 py-3 w-16">
+                            {item.webUrl && (
                               <a
                                 href={item.webUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-primary-600 hover:text-primary-700 hover:underline flex items-center gap-1"
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                               >
-                                {item.webUrl}
-                                <FiExternalLink size={12} />
+                                이동
+                                <FiExternalLink size={10} />
                               </a>
-                            ) : (
-                              <span className="text-gray-400">-</span>
                             )}
                           </td>
                         </tr>
@@ -489,14 +499,14 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
                   <div className="flex justify-end gap-3 mt-6">
                     <button
                       onClick={() => setShowUrlEditModal(false)}
-                      className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="px-4 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                     >
                       취소
                     </button>
                     <button
                       onClick={handleSaveUrls}
                       disabled={urlMutation.isPending}
-                      className="px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
+                      className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                     >
                       {urlMutation.isPending ? '저장 중...' : '저장'}
                     </button>
