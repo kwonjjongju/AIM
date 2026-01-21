@@ -244,7 +244,7 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
                           </td>
                           <td className="px-4 py-3 flex-1">
                             {item.gitUrl ? (
-                              <span className="text-gray-700 text-xs break-all">{item.gitUrl}</span>
+                              <span className="text-gray-700 text-sm break-all">{item.gitUrl}</span>
                             ) : (
                               <span className="text-gray-400">-</span>
                             )}
@@ -271,7 +271,7 @@ export default function ItemDetailModal({ itemId, onClose }: ItemDetailModalProp
                           </td>
                           <td className="px-4 py-3 flex-1">
                             {item.webUrl ? (
-                              <span className="text-gray-700 text-xs break-all">{item.webUrl}</span>
+                              <span className="text-gray-700 text-sm break-all">{item.webUrl}</span>
                             ) : (
                               <span className="text-gray-400">-</span>
                             )}
