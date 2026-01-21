@@ -243,7 +243,7 @@ export const uploadService = {
             status: 'IDEA',
             departmentId: department.id,
             createdBy: userId,
-            statusHistory: {
+            statusHistories: {
               create: {
                 toStatus: 'IDEA',
                 changedBy: userId,
