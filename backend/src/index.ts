@@ -9,6 +9,7 @@ import dashboardRoutes from './routes/dashboard.routes.js';
 import departmentRoutes from './routes/department.routes.js';
 import userRoutes from './routes/user.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
+import aiToolUserRoutes from './routes/aiToolUser.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/departments', departmentRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/v1/ai-tool-users', aiToolUserRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

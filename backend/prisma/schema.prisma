@@ -116,3 +116,20 @@ model ItemRelatedDepartment {
   @@id([itemId, departmentId])
   @@map("item_related_departments")
 }
+
+model AIToolUser {
+  id        Int      @id @default(autoincrement())
+  division  String   @default("")
+  team      String   @default("")
+  name      String   @default("")
+  email     String   @default("")
+  skywork   Boolean  @default(false)
+  gemini    Boolean  @default(false)
+  chatgpt   Boolean  @default(false)
+  cursor    Boolean  @default(false)
+  claude    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_tool_users")
+}

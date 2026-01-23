@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiCheck, FiX, FiSearch, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FiCheck, FiX, FiSearch, FiPlus, FiTrash2, FiSave } from 'react-icons/fi';
+import { aiToolUsersApi, AIToolUserData } from '../api/aiToolUsers';
+import toast from 'react-hot-toast';
 
 // 본부 목록
 const DIVISIONS = [
@@ -23,8 +25,8 @@ const AI_TOOLS = [
   { id: 'claude', name: 'Claude Code', color: '#8b5cf6' },
 ];
 
-// 사용자 데이터 (임시 하드코딩)
-const INITIAL_USERS_DATA = [
+// 초기 데이터 (DB가 비어있을 때 사용)
+const INITIAL_USERS_DATA: AIToolUserData[] = [
   { id: 1, division: '', team: '총괄사장', name: '금우연 사장', email: 'geumwy@kyungshin.co.kr', tools: { skywork: false, gemini: true, chatgpt: true, cursor: false, claude: false } },
   { id: 2, division: '전자부품사업본부', team: '전자시스템설계팀', name: '최규진 선임', email: 'embeddedmaster@kyungshin.co.kr', tools: { skywork: true, gemini: true, chatgpt: true, cursor: true, claude: true } },
   { id: 3, division: '전자부품사업본부', team: '전자시스템설계팀', name: '신용갑 책임', email: 'ygshin@kyungshin.co.kr', tools: { skywork: false, gemini: true, chatgpt: false, cursor: false, claude: false } },
@@ -47,10 +49,50 @@ const INITIAL_USERS_DATA = [
 export default function AIToolUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
-  const [usersData, setUsersData] = useState(INITIAL_USERS_DATA);
+  const [usersData, setUsersData] = useState<AIToolUserData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // 데이터 로드
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await aiToolUsersApi.getAll();
+      if (data.length === 0) {
+        // DB가 비어있으면 초기 데이터 사용
+        setUsersData(INITIAL_USERS_DATA);
+      } else {
+        setUsersData(data);
+      }
+    } catch (error) {
+      console.error('데이터 로드 실패:', error);
+      // 에러 시 초기 데이터 사용
+      setUsersData(INITIAL_USERS_DATA);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 저장 핸들러
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      await aiToolUsersApi.saveAll(usersData);
+      toast.success('저장되었습니다');
+    } catch (error) {
+      console.error('저장 실패:', error);
+      toast.error('저장에 실패했습니다');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // 팀 목록 추출
-  const teams = [...new Set(usersData.map(u => u.team))];
+  const teams = [...new Set(usersData.map(u => u.team).filter(t => t))];
 
   // 필터링된 데이터
   const filteredUsers = usersData.filter(user => {
@@ -74,8 +116,8 @@ export default function AIToolUsersPage() {
 
   // 새 사용자 추가 핸들러
   const handleAddUser = () => {
-    const newId = Math.max(...usersData.map(u => u.id)) + 1;
-    const newUser = {
+    const newId = usersData.length > 0 ? Math.max(...usersData.map(u => u.id)) + 1 : 1;
+    const newUser: AIToolUserData = {
       id: newId,
       division: '',
       team: '',
@@ -119,6 +161,14 @@ export default function AIToolUsersPage() {
     count: usersData.filter(u => u.tools[tool.id as keyof typeof u.tools]).length,
   }));
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500">데이터를 불러오는 중...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* 페이지 헤더 */}
@@ -131,15 +181,27 @@ export default function AIToolUsersPage() {
             총 {usersData.length}명의 AI 툴 사용자 현황
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleAddUser}
-          className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors font-medium"
-        >
-          <FiPlus size={18} />
-          사용자 추가
-        </motion.button>
+        <div className="flex items-center gap-3">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleAddUser}
+            className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors font-medium"
+          >
+            <FiPlus size={18} />
+            사용자 추가
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50"
+          >
+            <FiSave size={18} />
+            {isSaving ? '저장 중...' : '저장'}
+          </motion.button>
+        </div>
       </div>
 
       {/* 통계 카드 */}
