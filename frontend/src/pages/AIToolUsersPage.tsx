@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FiCheck, FiX, FiSearch, FiPlus } from 'react-icons/fi';
+import { FiCheck, FiX, FiSearch, FiPlus, FiTrash2 } from 'react-icons/fi';
 
 // 본부 목록
 const DIVISIONS = [
@@ -106,6 +106,13 @@ export default function AIToolUsersPage() {
     );
   };
 
+  // 사용자 삭제 핸들러
+  const handleDeleteUser = (userId: number) => {
+    if (window.confirm('정말 삭제하시겠습니까?')) {
+      setUsersData(prev => prev.filter(user => user.id !== userId));
+    }
+  };
+
   // 통계 계산
   const stats = AI_TOOLS.map(tool => ({
     ...tool,
@@ -203,6 +210,7 @@ export default function AIToolUsersPage() {
                     {tool.name}
                   </th>
                 ))}
+                <th className="px-3 py-3 text-center text-sm font-semibold w-16">삭제</th>
               </tr>
             </thead>
             <tbody>
@@ -269,6 +277,15 @@ export default function AIToolUsersPage() {
                       </button>
                     </td>
                   ))}
+                  <td className="px-3 py-3 text-center">
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                      title="삭제"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
