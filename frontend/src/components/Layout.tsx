@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FiHome, 
-  FiGrid, 
-  FiLogOut, 
+import {
+  FiHome,
+  FiGrid,
+  FiLogOut,
   FiUser,
   FiSettings,
   FiLayers,
   FiUsers,
   FiFolder,
-  FiCircle
+  FiCircle,
+  FiMonitor
 } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
@@ -56,6 +57,7 @@ const staticMenuItems: MenuItem[] = [
     subItems: [
       { id: 'dept', label: '부서 관리', path: '/management/departments', icon: <FiFolder size={16} /> },
       { id: 'users', label: '사용자 관리', path: '/management/users', icon: <FiUsers size={16} /> },
+      { id: 'ai-tool-users', label: '경신 AI 툴 사용자 현황', path: '/management/ai-tool-users', icon: <FiMonitor size={16} /> },
     ],
   },
 ];
