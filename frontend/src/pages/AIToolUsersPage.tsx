@@ -127,7 +127,6 @@ export default function AIToolUsersPage() {
                 <th className="px-4 py-3 text-left text-sm font-semibold">팀</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold">사용자</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold">계정 ID</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">PC 정보</th>
                 {AI_TOOLS.map(tool => (
                   <th
                     key={tool.id}
@@ -149,7 +148,6 @@ export default function AIToolUsersPage() {
                   <td className="px-4 py-3 text-sm font-medium text-gray-800">{user.team}</td>
                   <td className="px-4 py-3 text-sm text-gray-800">{user.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">{user.email}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{user.pcInfo}</td>
                   {AI_TOOLS.map(tool => (
                     <td key={tool.id} className="px-3 py-3 text-center">
                       {user.tools[tool.id as keyof typeof user.tools] ? (
