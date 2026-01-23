@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FiCheck, FiX, FiSearch } from 'react-icons/fi';
+import { FiCheck, FiX, FiSearch, FiPlus } from 'react-icons/fi';
 
 // 본부 목록
 const DIVISIONS = [
@@ -72,6 +72,40 @@ export default function AIToolUsersPage() {
     );
   };
 
+  // 새 사용자 추가 핸들러
+  const handleAddUser = () => {
+    const newId = Math.max(...usersData.map(u => u.id)) + 1;
+    const newUser = {
+      id: newId,
+      division: '',
+      team: '',
+      name: '',
+      email: '',
+      tools: { skywork: false, gemini: false, chatgpt: false, cursor: false, claude: false },
+    };
+    setUsersData(prev => [...prev, newUser]);
+  };
+
+  // 사용자 필드 변경 핸들러
+  const handleFieldChange = (userId: number, field: string, value: string) => {
+    setUsersData(prev =>
+      prev.map(user =>
+        user.id === userId ? { ...user, [field]: value } : user
+      )
+    );
+  };
+
+  // AI 툴 토글 핸들러
+  const handleToolToggle = (userId: number, toolId: string) => {
+    setUsersData(prev =>
+      prev.map(user =>
+        user.id === userId
+          ? { ...user, tools: { ...user.tools, [toolId]: !user.tools[toolId as keyof typeof user.tools] } }
+          : user
+      )
+    );
+  };
+
   // 통계 계산
   const stats = AI_TOOLS.map(tool => ({
     ...tool,
@@ -90,6 +124,15 @@ export default function AIToolUsersPage() {
             총 {usersData.length}명의 AI 툴 사용자 현황
           </p>
         </div>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleAddUser}
+          className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors font-medium"
+        >
+          <FiPlus size={18} />
+          사용자 추가
+        </motion.button>
       </div>
 
       {/* 통계 카드 */}
@@ -181,20 +224,49 @@ export default function AIToolUsersPage() {
                       ))}
                     </select>
                   </td>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-800">{user.team}</td>
-                  <td className="px-4 py-3 text-sm text-gray-800">{user.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{user.email}</td>
+                  <td className="px-2 py-2">
+                    <input
+                      type="text"
+                      value={user.team}
+                      onChange={(e) => handleFieldChange(user.id, 'team', e.target.value)}
+                      placeholder="팀명 입력"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                    />
+                  </td>
+                  <td className="px-2 py-2">
+                    <input
+                      type="text"
+                      value={user.name}
+                      onChange={(e) => handleFieldChange(user.id, 'name', e.target.value)}
+                      placeholder="이름 입력"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                    />
+                  </td>
+                  <td className="px-2 py-2">
+                    <input
+                      type="text"
+                      value={user.email}
+                      onChange={(e) => handleFieldChange(user.id, 'email', e.target.value)}
+                      placeholder="이메일 입력"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                    />
+                  </td>
                   {AI_TOOLS.map(tool => (
                     <td key={tool.id} className="px-3 py-3 text-center">
-                      {user.tools[tool.id as keyof typeof user.tools] ? (
-                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-teal-100">
-                          <FiCheck className="text-teal-600" size={16} />
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100">
-                          <FiX className="text-gray-400" size={16} />
-                        </span>
-                      )}
+                      <button
+                        onClick={() => handleToolToggle(user.id, tool.id)}
+                        className="transition-transform hover:scale-110"
+                      >
+                        {user.tools[tool.id as keyof typeof user.tools] ? (
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-teal-100">
+                            <FiCheck className="text-teal-600" size={16} />
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100">
+                            <FiX className="text-gray-400" size={16} />
+                          </span>
+                        )}
+                      </button>
                     </td>
                   ))}
                 </tr>
