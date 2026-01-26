@@ -58,6 +58,7 @@ const staticMenuItems: MenuItem[] = [
       { id: 'dept', label: '부서 관리', path: '/management/departments', icon: <FiFolder size={16} /> },
       { id: 'users', label: '사용자 관리', path: '/management/users', icon: <FiUsers size={16} /> },
       { id: 'ai-tool-users', label: '경신 AI 툴 사용자 현황', path: '/management/ai-tool-users', icon: <FiMonitor size={16} /> },
+      { id: 'ai-tool-users-v2', label: 'AI 툴 사용자 현황 (V2)', path: '/management/ai-tool-users-v2', icon: <FiMonitor size={16} /> },
     ],
   },
 ];

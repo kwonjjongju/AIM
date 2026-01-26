@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import BoardPage from './pages/BoardPage';
 import AIToolUsersPage from './pages/AIToolUsersPage';
+import AIToolUsersPageV2 from './pages/AIToolUsersPageV2';
 import Layout from './components/Layout';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -27,6 +28,7 @@ function App() {
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="board" element={<BoardPage />} />
         <Route path="management/ai-tool-users" element={<AIToolUsersPage />} />
+        <Route path="management/ai-tool-users-v2" element={<AIToolUsersPageV2 />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
