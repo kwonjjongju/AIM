@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiCheck, FiX, FiSearch, FiPlus, FiEdit2, FiSave, FiXCircle, FiTrash2 } from 'react-icons/fi';
-import { aiToolUsersApi, AIToolUserData } from '../api/aiToolUsers';
+import { FiCheck, FiX, FiSearch, FiPlus, FiEdit2, FiSave, FiXCircle, FiTrash2, FiTool } from 'react-icons/fi';
+import { aiToolUsersApi, AIToolUserData, AIToolDefinition } from '../api/aiToolUsers';
 import toast from 'react-hot-toast';
 
 // 본부 목록
@@ -16,14 +16,39 @@ const DIVISIONS = [
   '영업본부',
 ];
 
-// AI 툴 목록
-const AI_TOOLS = [
+// 기본 AI 툴 목록
+const DEFAULT_AI_TOOLS: AIToolDefinition[] = [
   { id: 'skywork', name: 'Skywork', color: '#6366f1' },
   { id: 'gemini', name: 'Gemini & Antigravity', color: '#10b981' },
   { id: 'chatgpt', name: 'ChatGPT', color: '#14b8a6' },
   { id: 'cursor', name: 'Cursor AI', color: '#f59e0b' },
   { id: 'claude', name: 'Claude Code', color: '#8b5cf6' },
 ];
+
+// 로컬스토리지 키
+const AI_TOOLS_STORAGE_KEY = 'ai-tools-definitions';
+
+// 로컬스토리지에서 툴 목록 로드
+const loadToolsFromStorage = (): AIToolDefinition[] => {
+  try {
+    const stored = localStorage.getItem(AI_TOOLS_STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error('툴 목록 로드 실패:', e);
+  }
+  return DEFAULT_AI_TOOLS;
+};
+
+// 로컬스토리지에 툴 목록 저장
+const saveToolsToStorage = (tools: AIToolDefinition[]) => {
+  try {
+    localStorage.setItem(AI_TOOLS_STORAGE_KEY, JSON.stringify(tools));
+  } catch (e) {
+    console.error('툴 목록 저장 실패:', e);
+  }
+};
 
 // 초기 데이터 (DB가 비어있을 때 사용)
 const INITIAL_USERS_DATA: AIToolUserData[] = [
@@ -60,6 +85,14 @@ export default function AIToolUsersPageV2() {
   const [usersData, setUsersData] = useState<AIToolUserData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // AI 툴 목록 상태
+  const [aiTools, setAiTools] = useState<AIToolDefinition[]>(loadToolsFromStorage);
+
+  // 툴 추가 모달 상태
+  const [showAddToolModal, setShowAddToolModal] = useState(false);
+  const [newToolName, setNewToolName] = useState('');
+  const [newToolColor, setNewToolColor] = useState('#6366f1');
+
   // 행 편집 상태
   const [editingRowId, setEditingRowId] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState<AIToolUserData | null>(null);
@@ -75,6 +108,11 @@ export default function AIToolUsersPageV2() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // 툴 목록 변경 시 로컬스토리지에 저장
+  useEffect(() => {
+    saveToolsToStorage(aiTools);
+  }, [aiTools]);
 
   const loadData = async () => {
     try {
@@ -228,19 +266,100 @@ export default function AIToolUsersPageV2() {
 
   const addNewUser = () => {
     const newId = usersData.length > 0 ? Math.max(...usersData.map(u => u.id)) + 1 : 1;
+    // 현재 등록된 모든 툴에 대해 false로 초기화
+    const initialTools: Record<string, boolean> = {};
+    aiTools.forEach(tool => {
+      initialTools[tool.id] = false;
+    });
     const newUser: AIToolUserData = {
       id: newId,
       division: '',
       team: '',
       name: '',
       email: '',
-      tools: { skywork: false, gemini: false, chatgpt: false, cursor: false, claude: false },
+      tools: initialTools,
     };
     setUsersData(prev => [...prev, newUser]);
     setEditingRowId(newId);
     setEditDraft(newUser);
     setIsDirty(false);
     setErrors({});
+  };
+
+  // AI 툴 추가
+  const handleAddTool = () => {
+    if (!newToolName.trim()) {
+      toast.error('툴 이름을 입력해주세요');
+      return;
+    }
+
+    // ID 생성 (소문자, 공백 제거)
+    const toolId = newToolName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+    // 중복 체크
+    if (aiTools.some(t => t.id === toolId)) {
+      toast.error('이미 존재하는 툴입니다');
+      return;
+    }
+
+    const newTool: AIToolDefinition = {
+      id: toolId,
+      name: newToolName.trim(),
+      color: newToolColor,
+    };
+
+    // 툴 목록에 추가
+    setAiTools(prev => [...prev, newTool]);
+
+    // 모든 사용자 데이터에 새 툴 필드 추가 (false로 초기화)
+    setUsersData(prev => prev.map(user => ({
+      ...user,
+      tools: { ...user.tools, [toolId]: false }
+    })));
+
+    // 편집 중인 draft가 있으면 거기에도 추가
+    if (editDraft) {
+      setEditDraft(prev => prev ? {
+        ...prev,
+        tools: { ...prev.tools, [toolId]: false }
+      } : null);
+    }
+
+    // 모달 닫기 및 초기화
+    setShowAddToolModal(false);
+    setNewToolName('');
+    setNewToolColor('#6366f1');
+    toast.success(`'${newTool.name}' 툴이 추가되었습니다`);
+  };
+
+  // AI 툴 삭제
+  const handleDeleteTool = (toolId: string) => {
+    const tool = aiTools.find(t => t.id === toolId);
+    if (!tool) return;
+
+    if (!window.confirm(`'${tool.name}' 툴을 삭제하시겠습니까?\n모든 사용자의 해당 툴 정보가 삭제됩니다.`)) {
+      return;
+    }
+
+    // 툴 목록에서 제거
+    setAiTools(prev => prev.filter(t => t.id !== toolId));
+
+    // 모든 사용자 데이터에서 해당 툴 필드 제거
+    setUsersData(prev => prev.map(user => {
+      const { [toolId]: _, ...restTools } = user.tools;
+      return { ...user, tools: restTools };
+    }));
+
+    // 편집 중인 draft가 있으면 거기서도 제거
+    if (editDraft) {
+      setEditDraft(prev => {
+        if (!prev) return null;
+        const { [toolId]: _, ...restTools } = prev.tools;
+        return { ...prev, tools: restTools };
+      });
+    }
+
+    toast.success(`'${tool.name}' 툴이 삭제되었습니다`);
   };
 
   // 행 삭제
@@ -286,9 +405,9 @@ export default function AIToolUsersPageV2() {
   };
 
   // 통계 계산
-  const stats = AI_TOOLS.map(tool => ({
+  const stats = aiTools.map(tool => ({
     ...tool,
-    count: usersData.filter(u => u.tools[tool.id as keyof typeof u.tools]).length,
+    count: usersData.filter(u => u.tools[tool.id]).length,
   }));
 
   if (isLoading) {
@@ -311,19 +430,30 @@ export default function AIToolUsersPageV2() {
             총 {usersData.length}명의 AI 툴 사용자 현황 - Row Editing 방식
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleAddUser}
-          className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors font-medium"
-        >
-          <FiPlus size={18} />
-          신규 등록
-        </motion.button>
+        <div className="flex items-center gap-3">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowAddToolModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-medium"
+          >
+            <FiTool size={18} />
+            툴 추가
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleAddUser}
+            className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors font-medium"
+          >
+            <FiPlus size={18} />
+            신규 등록
+          </motion.button>
+        </div>
       </div>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(aiTools.length, 6)}, minmax(0, 1fr))` }}>
         {stats.map((tool, idx) => (
           <motion.div
             key={tool.id}
@@ -394,13 +524,20 @@ export default function AIToolUsersPageV2() {
                 <th className="px-4 py-3 text-left text-sm font-semibold">팀</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold">사용자</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold">계정 ID</th>
-                {AI_TOOLS.map(tool => (
+                {aiTools.map(tool => (
                   <th
                     key={tool.id}
-                    className="px-3 py-3 text-center text-sm font-semibold whitespace-nowrap"
+                    className="px-3 py-3 text-center text-sm font-semibold whitespace-nowrap relative group"
                     style={{ backgroundColor: tool.color }}
                   >
-                    {tool.name}
+                    <span>{tool.name}</span>
+                    <button
+                      onClick={() => handleDeleteTool(tool.id)}
+                      className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs hover:bg-red-600"
+                      title={`'${tool.name}' 툴 삭제`}
+                    >
+                      <FiX size={12} />
+                    </button>
                   </th>
                 ))}
                 <th className="px-3 py-3 text-center text-sm font-semibold min-w-[200px]">작업</th>
@@ -494,14 +631,14 @@ export default function AIToolUsersPageV2() {
                     </td>
 
                     {/* AI 툴 체크박스 */}
-                    {AI_TOOLS.map(tool => (
+                    {aiTools.map(tool => (
                       <td key={tool.id} className="px-3 py-3 text-center">
                         {isEditing ? (
                           <button
                             onClick={() => handleToolToggle(tool.id)}
                             className="transition-transform hover:scale-110"
                           >
-                            {currentData.tools[tool.id as keyof typeof currentData.tools] ? (
+                            {currentData.tools[tool.id] ? (
                               <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-teal-100">
                                 <FiCheck className="text-teal-600" size={16} />
                               </span>
@@ -512,7 +649,7 @@ export default function AIToolUsersPageV2() {
                             )}
                           </button>
                         ) : (
-                          user.tools[tool.id as keyof typeof user.tools] ? (
+                          user.tools[tool.id] ? (
                             <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-teal-100">
                               <FiCheck className="text-teal-600" size={16} />
                             </span>
@@ -620,6 +757,103 @@ export default function AIToolUsersPageV2() {
                 className="px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600 transition-colors"
               >
                 저장 후 이동
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* 툴 추가 모달 */}
+      {showAddToolModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
+          >
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <FiTool className="text-indigo-500" />
+              AI 툴 추가
+            </h3>
+
+            <div className="space-y-4">
+              {/* 툴 이름 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  툴 이름 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newToolName}
+                  onChange={(e) => setNewToolName(e.target.value)}
+                  placeholder="예: GitHub Copilot"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* 툴 색상 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  테마 색상
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={newToolColor}
+                    onChange={(e) => setNewToolColor(e.target.value)}
+                    className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={newToolColor}
+                    onChange={(e) => setNewToolColor(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono text-sm"
+                  />
+                </div>
+                {/* 프리셋 색상 */}
+                <div className="flex gap-2 mt-2">
+                  {['#6366f1', '#10b981', '#14b8a6', '#f59e0b', '#8b5cf6', '#ef4444', '#3b82f6', '#ec4899'].map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setNewToolColor(color)}
+                      className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${newToolColor === color ? 'border-gray-800 scale-110' : 'border-transparent'}`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* 미리보기 */}
+              {newToolName && (
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-2">미리보기</p>
+                  <div
+                    className="inline-block px-3 py-1.5 text-white text-sm font-medium rounded"
+                    style={{ backgroundColor: newToolColor }}
+                  >
+                    {newToolName}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowAddToolModal(false);
+                  setNewToolName('');
+                  setNewToolColor('#6366f1');
+                }}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleAddTool}
+                disabled={!newToolName.trim()}
+                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                추가
               </button>
             </div>
           </motion.div>

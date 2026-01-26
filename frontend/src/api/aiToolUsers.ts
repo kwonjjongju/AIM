@@ -6,13 +6,14 @@ export interface AIToolUserData {
   team: string;
   name: string;
   email: string;
-  tools: {
-    skywork: boolean;
-    gemini: boolean;
-    chatgpt: boolean;
-    cursor: boolean;
-    claude: boolean;
-  };
+  tools: Record<string, boolean>;
+}
+
+// AI 툴 정의
+export interface AIToolDefinition {
+  id: string;
+  name: string;
+  color: string;
 }
 
 export const aiToolUsersApi = {
