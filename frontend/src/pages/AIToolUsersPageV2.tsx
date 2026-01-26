@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiCheck, FiX, FiSearch, FiPlus, FiEdit2, FiSave, FiXCircle } from 'react-icons/fi';
+import { FiCheck, FiX, FiSearch, FiPlus, FiEdit2, FiSave, FiXCircle, FiTrash2 } from 'react-icons/fi';
 import { aiToolUsersApi, AIToolUserData } from '../api/aiToolUsers';
 import toast from 'react-hot-toast';
 
@@ -243,6 +243,30 @@ export default function AIToolUsersPageV2() {
     setErrors({});
   };
 
+  // 행 삭제
+  const handleDeleteUser = async (userId: number) => {
+    if (editingRowId === userId) {
+      toast.error('편집 중인 행은 삭제할 수 없습니다. 먼저 취소해주세요.');
+      return;
+    }
+    if (!window.confirm('정말 삭제하시겠습니까?')) {
+      return;
+    }
+
+    const updatedData = usersData.filter(u => u.id !== userId);
+    setUsersData(updatedData);
+
+    try {
+      await aiToolUsersApi.saveAll(updatedData);
+      toast.success('삭제되었습니다');
+    } catch (error) {
+      console.error('삭제 실패:', error);
+      toast.error('삭제에 실패했습니다');
+      // 실패 시 롤백
+      loadData();
+    }
+  };
+
   // Unsaved modal 처리
   const handleDiscardChanges = () => {
     setShowUnsavedModal(false);
@@ -379,7 +403,7 @@ export default function AIToolUsersPageV2() {
                     {tool.name}
                   </th>
                 ))}
-                <th className="px-3 py-3 text-center text-sm font-semibold min-w-[180px]">작업</th>
+                <th className="px-3 py-3 text-center text-sm font-semibold min-w-[200px]">작업</th>
               </tr>
             </thead>
             <tbody>
@@ -525,15 +549,26 @@ export default function AIToolUsersPageV2() {
                           )}
                         </div>
                       ) : (
-                        <button
-                          onClick={() => handleStartEdit(user)}
-                          disabled={editingRowId !== null}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 text-slate-700 text-sm rounded hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mx-auto"
-                          title={editingRowId !== null ? '편집 중인 행이 있습니다' : '편집'}
-                        >
-                          <FiEdit2 size={14} />
-                          편집
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleStartEdit(user)}
+                            disabled={editingRowId !== null}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 text-slate-700 text-sm rounded hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={editingRowId !== null ? '편집 중인 행이 있습니다' : '편집'}
+                          >
+                            <FiEdit2 size={14} />
+                            편집
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(user.id)}
+                            disabled={editingRowId !== null}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 text-sm rounded hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={editingRowId !== null ? '편집 중인 행이 있습니다' : '삭제'}
+                          >
+                            <FiTrash2 size={14} />
+                            삭제
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
